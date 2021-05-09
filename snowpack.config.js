@@ -66,8 +66,7 @@ module.exports = {
   ],
   routes: [{ match: 'routes', src: '.*', dest: '/index.html' }],
   optimize: {
-    /* Example: Bundle your final build: */
-    // "bundle": true,
+    minify: true,
   },
   packageOptions: {
     /* ... */
