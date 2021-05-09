@@ -67,6 +67,7 @@ module.exports = {
   routes: [{ match: 'routes', src: '.*', dest: '/index.html' }],
   optimize: {
     minify: true,
+    preload: true,
   },
   packageOptions: {
     /* ... */
