@@ -1,8 +1,8 @@
 import React, { Fragment } from 'react';
 import classNames from 'classnames';
+
 import MenuButton from '../../components/MenuButton/MenuButton';
 import IconButton from '../../components/IconButton/IconButton';
-
 import Close from '../../icons/Close';
 
 import styles from './Sidebar.module.scss';
