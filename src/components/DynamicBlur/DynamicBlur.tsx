@@ -1,7 +1,6 @@
 import React, { memo, useEffect, useRef, useState, useContext } from 'react';
 
 import { UIStateContext } from '../../providers/uiStateProvider';
-import { debounce } from '../../utils/common';
 
 import styles from './DynamicBlur.module.scss';
 
