@@ -48,12 +48,11 @@ exports[`<SideBar /> renders sideBar 1`] = `
         </span>
       </a>
       <a
-        aria-current="page"
-        class="menuButton active"
-        href="/"
+        class="menuButton"
+        href="/p/vdsvb"
       >
         <span>
-          Home
+          Playlist
         </span>
       </a>
       <hr

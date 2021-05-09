@@ -6,9 +6,9 @@ import MenuButton from '../MenuButton/MenuButton';
 import Sidebar from './Sidebar';
 
 describe('<SideBar />', () => {
-  const playlistMenuItems = [<MenuButton key="key" label="Home" to="/" />];
+  const playlistMenuItems = [<MenuButton key="key" label="Playlist" to="/p/vdsvb" />];
   test('renders sideBar', () => {
-    const { container } = render(<Sidebar isOpen={true} onClose={jest.fn()} playlistMenuItems={playlistMenuItems} />);
+    const { container } = render(<Sidebar isOpen={true} onClose={() => ''} playlistMenuItems={playlistMenuItems} />);
 
     expect(container).toMatchSnapshot();
   });
