@@ -5,10 +5,9 @@ import Header from '../Header/Header';
 import Sidebar from '../Sidebar/Sidebar';
 import DynamicBlur from '../DynamicBlur/DynamicBlur';
 import { ConfigContext } from '../../providers/ConfigProvider';
-import { UIStateContext } from '../../providers/uiStateProvider';
+import MenuButton from '../../components/MenuButton/MenuButton';
 
 import styles from './Layout.module.scss';
-import MenuButton from '../../components/MenuButton/MenuButton';
 
 type LayoutProps = {
   children?: ReactNode;
@@ -16,13 +15,12 @@ type LayoutProps = {
 
 const Layout: FC<LayoutProps> = ({ children }) => {
   const { menu, assets, options } = useContext(ConfigContext);
-  const { blurImage } = useContext(UIStateContext);
   const [sideBarOpen, setSideBarOpen] = useState(false);
   const hasDynamicBlur = options.dynamicBlur === true;
 
   return (
     <div className={styles.layout}>
-      {hasDynamicBlur && blurImage && <DynamicBlur url={blurImage} transitionTime={1} debounceTime={350} />}
+      {hasDynamicBlur && <DynamicBlur transitionTime={1} />}
       <Header
         onMenuButtonClick={() => setSideBarOpen(true)}
         playlistMenuItems={menu.map((item) => (

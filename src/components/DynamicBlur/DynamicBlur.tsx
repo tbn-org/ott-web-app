@@ -1,25 +1,22 @@
-import React, { memo, useEffect, useRef, useState } from 'react';
+import React, { memo, useEffect, useRef, useState, useContext } from 'react';
 
+import { UIStateContext } from '../../providers/uiStateProvider';
 import { debounce } from '../../utils/common';
 
 import styles from './DynamicBlur.module.scss';
 
 type Props = {
-  url: string;
   transitionTime?: number;
-  debounceTime?: number;
 };
 
-const DynamicBlur = ({ url, transitionTime = 1, debounceTime = 350 }: Props): JSX.Element => {
+const DynamicBlur = ({ transitionTime = 1 }: Props): JSX.Element => {
+  const { blurImage: url } = useContext(UIStateContext);
   const [currentUrl, setCurrentUrl] = useState<string>();
   const [currentImg, setCurrentImg] = useState<number>();
   const firstImage = useRef<HTMLDivElement>() as React.MutableRefObject<HTMLDivElement>;
   const secondImage = useRef<HTMLDivElement>() as React.MutableRefObject<HTMLDivElement>;
-  const loadImgDebounced = useRef(
-    debounce((url: string, currentImg: number) => loadImage(url, currentImg), debounceTime),
-  );
 
-  const loadImage = (url: string, currentImg: number) => {
+  const loadImage = (url: string, currentImg?: number) => {
     const img = document.createElement('img');
     img.onload = () => {
       if (!firstImage.current || !secondImage.current) {
@@ -43,7 +40,7 @@ const DynamicBlur = ({ url, transitionTime = 1, debounceTime = 350 }: Props): JS
   useEffect(() => {
     if (url && url !== currentUrl) {
       setCurrentUrl(url);
-      loadImgDebounced.current(url, currentImg);
+      loadImage(url, currentImg);
     }
   }, [url, currentUrl, currentImg]);
 
