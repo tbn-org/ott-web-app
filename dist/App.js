@@ -9,6 +9,7 @@ import "./styles/main.css.proxy.js";
 import {restoreWatchHistory} from "./stores/WatchHistoryStore.js";
 import {initializeFavorites} from "./stores/FavoritesStore.js";
 import {initializeAccount} from "./stores/AccountStore.js";
+import {getPublicUrl} from "./utils/domHelpers.js";
 class App extends Component {
   constructor() {
     super(...arguments);
@@ -46,7 +47,9 @@ class App extends Component {
       onLoading: this.configLoadingHandler,
       onValidationError: this.configErrorHandler,
       onValidationCompleted: this.configValidationCompletedHandler
-    }, /* @__PURE__ */ React.createElement(Router, null, /* @__PURE__ */ React.createElement(Root, {
+    }, /* @__PURE__ */ React.createElement(Router, {
+      basename: getPublicUrl("/")
+    }, /* @__PURE__ */ React.createElement(Root, {
       error: this.state.error
     })))));
   }

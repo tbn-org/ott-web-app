@@ -12,6 +12,7 @@ import useBreakpoint, {Breakpoint} from "../../hooks/useBreakpoint.js";
 import Button from "../Button/Button.js";
 import Popover from "../Popover/Popover.js";
 import UserMenu from "../UserMenu/UserMenu.js";
+import {getPublicUrl} from "../../utils/domHelpers.js";
 import styles from "./Header.module.css.proxy.js";
 const Header = ({
   children,
@@ -100,7 +101,7 @@ const Header = ({
   }, /* @__PURE__ */ React.createElement(Menu, null))), logoSrc && /* @__PURE__ */ React.createElement("div", {
     className: styles.brand
   }, /* @__PURE__ */ React.createElement(Logo, {
-    src: logoSrc,
+    src: getPublicUrl(logoSrc),
     onLoad: () => setLogoLoaded(true)
   })), /* @__PURE__ */ React.createElement("nav", {
     className: styles.nav,
