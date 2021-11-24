@@ -1,0 +1,30 @@
+._title_bmbtt_1 {
+  margin: 24px 0;
+  font-weight: var(--body-font-weight-bold);
+  font-size: 26px;
+}
+
+._text_bmbtt_7 {
+  margin-bottom: 24px;
+  font-size: 16px;
+}
+
+._button_bmbtt_12 {
+  margin: 16px 0;
+}
+
+._notSure_bmbtt_16 {
+  font-size: 16px;
+}
+
+._link_bmbtt_20 {
+  margin-bottom: 24px;
+  margin-left: 6px;
+  color: var(--primary-color);
+  font-weight: var(--body-font-weight-bold);
+  cursor: pointer;
+}
+
+._link_bmbtt_20:hover {
+  text-decoration: underline;
+}

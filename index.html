@@ -1,0 +1,19 @@
+<!DOCTYPE html><html lang="en"><head><base href="/"><meta charset="utf-8"><title>JW OTT Webapp</title><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="description" content="JW OTT Webapp is an open-source, dynamically generated video website." data-react-helmet="true"><meta name="twitter:card" content="summary" data-react-helmet="true"><meta property="og:title" content="JW OTT Webapp" data-react-helmet="true"><meta property="og:description" content="JW OTT Webapp is an open-source, dynamically generated video website." data-react-helmet="true"><meta property="og:image" content="/images/icon-256x256.png" data-react-helmet="true"><link rel="icon" href="favicon.ico" type="image/x-icon"><link rel="preconnect" href="https://content.jwplatform.com"><link rel="preconnect" href="https://cdn.jwplayer.com"><link rel="preconnect" href="https://jwpapp.com"><meta name="apple-mobile-web-app-capable" content="yes"><link rel="apple-touch-icon" sizes="144x144" href="/images/apple-touch-icon.png"><meta name="theme-color" content="#000000"><meta name="msapplication-navbutton-color" content="#000000"><meta name="msapplication-config" content="/browserconfig.xml"><meta name="apple-mobile-web-app-status-bar-style" content="#000000"><link rel="manifest" href="manifest.json"><link rel="stylesheet" href="/css/styles.4bb3b6e90f51a4a01b8d.css"></head><body><div id="root"></div><noscript>You need to enable JavaScript to run this app.</noscript><script>// TODO: move this to /src/ and only for dev builds
+    var urlSearchParams = new URLSearchParams(window.location.search);
+    var configId =
+          urlSearchParams.get('c') ||
+          window.localStorage.getItem('jwshowcase.config');
+
+    if (configId) {
+      window.localStorage.setItem('jwshowcase.config', configId);
+
+      if (configId.includes('test--')) {
+        window.configLocation = 'https://jw-ott-webapp.s3.eu-central-1.amazonaws.com/' + configId + '.json';
+      } else {
+        window.configLocation =
+          'https://' + configId + '.jwpapp.com/config.json';
+      }
+      window.configId = configId;
+    } else {
+      window.configLocation = './config.json';
+    }</script><script src="/js/webpack-runtime.b4cfdc022c1bb13e315b.js"></script><script src="/js/lib-yup.fcc9bdb02e896b5262ed.js"></script><script src="/js/lib-react-virtualized.8d498666bcd09671e205.js"></script><script src="/js/lib-index-09ea300a.29ac4a9b2e430f59bf4c.js"></script><script src="/js/791.dd84824fc2583810d019.js"></script><script src="/js/dist/index.e3a4da45205e4c34fe01.js"></script></body></html>

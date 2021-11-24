@@ -1,0 +1,54 @@
+._menuButton_z2u65_1 {
+  position: relative;
+  display: inline-flex;
+  justify-content: inherit;
+  align-items: center;
+  width: 100%;
+  min-height: 44px;
+  padding: 0 16px;
+  color: #fff;
+  font-family: var(--body-alt-font-family);
+  font-weight: var(--body-font-weight-bold);
+  font-size: 18px;
+  text-align: center;
+  text-decoration: none;
+  background: transparent;
+  outline: none;
+  cursor: pointer;
+  opacity: 0.7;
+  transition: background 0.1s ease;
+}
+._menuButton_z2u65_1._small_z2u65_21 {
+  padding: 0 24px;
+  font-size: 16px;
+}
+._menuButton_z2u65_1._small_z2u65_21 > ._startIcon_z2u65_25 {
+  margin-right: 24px;
+}
+@media (hover: hover) and (pointer: fine) {
+  ._menuButton_z2u65_1:hover, ._menuButton_z2u65_1:active {
+    background: rgba(255, 255, 255, 0.08);
+    opacity: 1;
+  }
+}
+._active_z2u65_35 {
+  background: rgba(255, 255, 255, 0.08);
+  opacity: 1;
+}
+._startIcon_z2u65_25 {
+  display: flex;
+  align-items: center;
+  height: 100%;
+  margin-right: 12px;
+}
+._startIcon_z2u65_25 > svg {
+  width: 25px;
+  height: 25px;
+  fill: currentColor;
+}
+@media screen and (min-width: 480px) and (max-width: 1023px) {
+  ._startIcon_z2u65_25 > svg {
+    width: 20px;
+    height: 20px;
+  }
+}

@@ -1,0 +1,2 @@
+let json = {"error_description":"","error_heading":"","error_subheading":"","heading":"","no_results_heading":"","search_bar":{"clear_search_label":"","search_label":"","search_placeholder":""},"start_typing":"","suggestions":"","tip_one":"","tip_three":"","tip_two":"","title":""};
+export default json;

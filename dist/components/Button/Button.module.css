@@ -1,0 +1,95 @@
+._button_96eer_1 {
+  position: relative;
+  display: inline-flex;
+  justify-content: inherit;
+  align-items: center;
+  height: 36px;
+  padding: 0 16px;
+  overflow: hidden;
+  font-family: var(--body-alt-font-family);
+  font-weight: var(--body-font-weight-bold);
+  font-size: 16px;
+  line-height: 18px;
+  text-align: center;
+  text-decoration: none;
+  border-radius: 4px;
+  outline: none;
+  cursor: pointer;
+  transition: background-color 0.1s ease, transform 0.1s ease;
+}
+@media (hover: hover) and (pointer: fine) {
+  ._button_96eer_1:not(._disabled_96eer_21):hover, ._button_96eer_1:not(._disabled_96eer_21):focus {
+    transform: scale(1.1);
+  }
+  ._button_96eer_1:not(._disabled_96eer_21):focus:not(:focus-visible):not(:hover) {
+    transform: scale(1);
+  }
+  ._button_96eer_1:not(._disabled_96eer_21):focus-visible {
+    transform: scale(1.1);
+  }
+}
+._button_96eer_1._disabled_96eer_21 {
+  cursor: default;
+  opacity: 0.5;
+}
+._button_96eer_1._large_96eer_35 {
+  height: 40px;
+}
+._button_96eer_1._default_96eer_38 {
+  color: currentColor;
+  background-color: rgba(0, 0, 0, 0.6);
+}
+._button_96eer_1._primary_96eer_42 {
+  color: var(--highlight-contrast-color, #000);
+  background-color: var(--highlight-color, #fff);
+}
+._button_96eer_1._outlined_96eer_46 {
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+._button_96eer_1._outlined_96eer_46:not(._disabled_96eer_21)._active_96eer_49, ._button_96eer_1._outlined_96eer_46:not(._disabled_96eer_21):focus {
+  color: var(--highlight-contrast-color, #000);
+  background-color: var(--highlight-color, #fff);
+  border-color: var(--highlight-color, #fff);
+}
+._button_96eer_1._text_96eer_54 {
+  background: none;
+  opacity: 0.7;
+}
+._button_96eer_1._text_96eer_54:not(._disabled_96eer_21)._active_96eer_49, ._button_96eer_1._text_96eer_54:not(._disabled_96eer_21):focus {
+  opacity: 1;
+}
+._button_96eer_1._text_96eer_54:not(._disabled_96eer_21):hover {
+  z-index: 1;
+  background: rgba(0, 0, 0, 0.6);
+  opacity: 1;
+}
+._button_96eer_1._fullWidth_96eer_66 {
+  justify-content: center;
+  width: 100%;
+}
+@media (hover: hover) and (pointer: fine) {
+  ._button_96eer_1._fullWidth_96eer_66:hover:not(._disabled_96eer_21) {
+    transform: scale(1.04);
+  }
+}
+._button_96eer_1 > svg {
+  width: 18px;
+  height: 18px;
+}
+._startIcon_96eer_80 {
+  display: flex;
+  align-items: center;
+  height: 100%;
+  margin-right: 11px;
+}
+._startIcon_96eer_80 > svg {
+  width: 20px;
+  height: 20px;
+  fill: currentColor;
+}
+@media screen and (min-width: 480px) and (max-width: 1023px) {
+  ._startIcon_96eer_80 > svg {
+    width: 18px;
+    height: 18px;
+  }
+}

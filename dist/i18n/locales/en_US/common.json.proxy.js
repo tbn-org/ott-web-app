@@ -1,0 +1,2 @@
+let json = {"back":"Back","card_lock":"Item locked","close_modal":"Close","confirmation_dialog":{"close":"Cancel","confirm":"Yes"},"filter_videos_by_genre":"Filter videos by genre","home":"Home","live":"LIVE","optional":"(Optional)","play_item":"Play {{ title }}","sign_in":"Sign in","sign_up":"Sign up","slide_left":"Slide left","slide_right":"Slide right"};
+export default json;

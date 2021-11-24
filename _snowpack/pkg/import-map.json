@@ -1,0 +1,24 @@
+{
+  "imports": {
+    "@testing-library/react": "./@testing-library/react.js",
+    "classnames": "./classnames.js",
+    "i18next": "./i18next.js",
+    "i18next-browser-languagedetector": "./i18next-browser-languagedetector.js",
+    "jwt-decode": "./jwt-decode.js",
+    "lodash.merge": "./lodash.merge.js",
+    "memoize-one": "./memoize-one.js",
+    "pullstate": "./pullstate.js",
+    "react": "./react.js",
+    "react-dom": "./react-dom.js",
+    "react-helmet": "./react-helmet.js",
+    "react-i18next": "./react-i18next.js",
+    "react-query": "./react-query.js",
+    "react-router": "./react-router.js",
+    "react-router-dom": "./react-router-dom.js",
+    "react-virtualized": "./react-virtualized.js",
+    "react-virtualized/dist/commonjs/List": "./react-virtualized/dist/commonjs/List.js",
+    "react-virtualized/dist/commonjs/WindowScroller": "./react-virtualized/dist/commonjs/WindowScroller.js",
+    "wicg-inert": "./wicg-inert.js",
+    "yup": "./yup.js"
+  }
+}

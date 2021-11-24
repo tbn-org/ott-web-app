@@ -1,0 +1,45 @@
+._searchBar_bqz0j_1 {
+  position: relative;
+  height: 36px;
+}
+
+._icon_bqz0j_6 {
+  position: absolute;
+  margin: 6px 8px;
+  pointer-events: none;
+}
+
+._input_bqz0j_12 {
+  display: inline-block;
+  width: 100%;
+  height: 100%;
+  padding: 0 36px 0 36px;
+  color: currentColor;
+  font-weight: var(--body-font-weight-bold);
+  font-size: 16px;
+  background: rgba(0, 0, 0, 0.54);
+  border: 1px solid rgba(255, 255, 255, 0.32);
+  border-radius: 4px;
+  transition: border 0.1s ease, background 0.1s ease;
+}
+
+._input_bqz0j_12::-webkit-input-placeholder {
+  color: currentColor;
+  opacity: 0.5;
+}
+
+._input_bqz0j_12:focus, ._input_bqz0j_12:active {
+  border-color: #fff;
+  outline: none;
+}
+
+._clearButton_bqz0j_34 {
+  position: absolute;
+  top: -2px;
+  right: 0;
+}
+
+._clearButton_bqz0j_34 > svg {
+  width: 18px;
+  height: 18px;
+}

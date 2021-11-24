@@ -1,0 +1,14 @@
+
+export let code = "._title_lpm25_1 {\n  margin-bottom: 8px;\n  font-weight: var(--body-font-weight-bold);\n  font-size: 24px;\n}\n\n._subtitle_lpm25_7 {\n  margin-bottom: 24px;\n  font-weight: var(--body-font-weight-bold);\n  font-size: 18px;\n}\n\n._offers_lpm25_13 {\n  display: flex;\n  margin: 0 -4px 24px;\n}\n\n._offer_lpm25_13 {\n  flex: 1;\n  margin: 0 4px;\n}\n\n._radio_lpm25_23 {\n  position: absolute;\n  width: 1px;\n  height: 1px;\n  overflow: hidden;\n  white-space: nowrap;\n  clip: rect(0 0 0 0);\n  clip-path: inset(50%);\n}\n\n._radio_lpm25_23 :focus + ._label_lpm25_32,\n._radio_lpm25_23 :active + ._label_lpm25_32 {\n  border-color: #fff;\n}\n\n._radio_lpm25_23:checked + ._label_lpm25_32 {\n  color: #000;\n  background-color: #fff;\n  border-color: #fff;\n}\n\n._label_lpm25_32 {\n  display: flex;\n  flex-direction: column;\n  height: 100%;\n  padding: 16px;\n  background-color: rgba(0, 0, 0, 0.34);\n  border: 1px solid rgba(255, 255, 255, 0.34);\n  border-radius: 4px;\n  cursor: pointer;\n  transition: border 0.2s ease, background 0.2s ease;\n}\n\n._offerTitle_lpm25_54 {\n  font-weight: var(--body-font-weight-bold);\n  font-size: 20px;\n  text-align: center;\n}\n\n._offerDivider_lpm25_60 {\n  width: 100%;\n  border: none;\n  border-bottom: 1px solid currentColor;\n  opacity: 0.54;\n}\n\n._offerBenefits_lpm25_67 {\n  margin-bottom: 16px;\n  padding: 0;\n}\n\n._offerBenefits_lpm25_67 > li {\n  display: flex;\n  align-items: center;\n  margin-bottom: 4px;\n  padding: 4px 0;\n}\n\n._offerBenefits_lpm25_67 > li > svg {\n  flex-shrink: 0;\n  margin-right: 4px;\n  fill: #5aae4a;\n}\n\n@media screen and (max-width: 479px) {\n  ._offerBenefits_lpm25_67 > li {\n    font-size: 14px;\n  }\n}\n\n._fill_lpm25_88 {\n  flex: 1;\n}\n\n._offerPrice_lpm25_92 {\n  display: flex;\n  flex-wrap: wrap;\n  justify-content: center;\n  align-items: baseline;\n  font-size: 32px;\n}\n\n._offerPrice_lpm25_92 > small {\n  margin-left: 4px;\n  font-size: 12px;\n}";
+let json = {"title":"_title_lpm25_1","subtitle":"_subtitle_lpm25_7","offers":"_offers_lpm25_13","offer":"_offer_lpm25_13","radio":"_radio_lpm25_23","label":"_label_lpm25_32","offerTitle":"_offerTitle_lpm25_54","offerDivider":"_offerDivider_lpm25_60","offerBenefits":"_offerBenefits_lpm25_67","fill":"_fill_lpm25_88","offerPrice":"_offerPrice_lpm25_92"};
+export default json;
+
+// [snowpack] add styles to the page (skip if no document exists)
+if (typeof document !== 'undefined') {
+  const styleEl = document.createElement("style");
+  const codeEl = document.createTextNode(code);
+  styleEl.type = 'text/css';
+
+  styleEl.appendChild(codeEl);
+  document.head.appendChild(styleEl);
+}

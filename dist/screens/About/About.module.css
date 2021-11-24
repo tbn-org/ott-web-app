@@ -1,0 +1,29 @@
+._about_evfxj_1 {
+  max-width: 960px;
+  margin: 24px auto;
+  padding: 16px;
+  font-size: 16px;
+  line-height: 1.4em;
+  background-color: rgba(255, 255, 255, 0.1);
+}
+._about_evfxj_1 h1, ._about_evfxj_1 h2, ._about_evfxj_1 h3, ._about_evfxj_1 h4, ._about_evfxj_1 h5, ._about_evfxj_1 h6 {
+  font-weight: bold;
+}
+._about_evfxj_1 h1 {
+  font-size: 24px;
+}
+._about_evfxj_1 h2 {
+  font-size: 20px;
+}
+._about_evfxj_1 h3 {
+  font-size: 18px;
+}
+._about_evfxj_1 a,
+._about_evfxj_1 a:visited {
+  color: #3990ff;
+  text-decoration: none;
+}
+._about_evfxj_1 a:hover,
+._about_evfxj_1 a:visited:hover {
+  text-decoration: underline;
+}

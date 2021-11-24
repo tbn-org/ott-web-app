@@ -1,0 +1,2 @@
+let json = {"close_menu":"Close menu","open_menu":"Open menu","open_user_menu":"Open user menu","sign_in":"Sign in","sign_up":"Sign up"};
+export default json;

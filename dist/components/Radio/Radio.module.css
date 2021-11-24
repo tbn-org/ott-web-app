@@ -1,0 +1,70 @@
+._container_1onmd_1._error_1onmd_1 ._helperText_1onmd_1 {
+  color: #ff0c3e;
+}
+
+._header_1onmd_5 {
+  margin-bottom: 8px;
+  font-weight: var(--body-font-weight-bold);
+  text-align: left;
+}
+
+._header_1onmd_5 > span {
+  float: right;
+  color: rgba(255, 255, 255, 0.7);
+  font-weight: normal;
+}
+
+._radio_1onmd_16 {
+  display: flex;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+._radio_1onmd_16 > label {
+  margin-left: 8px;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+._radio_1onmd_16 > input {
+  position: relative;
+  width: 20px;
+  height: 20px;
+  margin: 0;
+  border-radius: 15px;
+  transition: all 0.1s;
+  appearance: none;
+}
+
+._radio_1onmd_16 > input:not(:checked) {
+  border: 2px solid rgba(255, 255, 255, 0.34);
+}
+
+._radio_1onmd_16 > input:not(:checked):hover {
+  border-color: rgba(255, 255, 255, 0.7);
+}
+
+._radio_1onmd_16 > input:checked {
+  width: 20px;
+  height: 20px;
+  border: 2px solid var(--primary-color);
+}
+
+._radio_1onmd_16 > input:checked::after {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 10px;
+  height: 10px;
+  background-color: var(--primary-color);
+  border: 2px solid transparent;
+  border-radius: 15px;
+  transform: translateX(-50%) translateY(-50%);
+  content: "";
+}
+
+._helperText_1onmd_1 {
+  margin-top: 4px;
+  font-size: 12px;
+  text-align: left;
+}

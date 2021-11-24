@@ -1,0 +1,34 @@
+._errorPage_1pi7f_1 {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 70vh;
+}
+
+._box_1pi7f_8 {
+  max-width: 500px;
+  padding: 12px;
+}
+
+._title_1pi7f_13 {
+  margin-bottom: 24px;
+  color: #fff;
+  font-weight: var(--body-font-weight-bold);
+  font-size: 34px;
+}
+
+._main_1pi7f_20 {
+  color: #fff;
+}
+
+._main_1pi7f_20 > h6 {
+  margin-bottom: 16px;
+  font-weight: var(--body-font-weight-bold);
+  font-size: 20px;
+}
+
+@media screen and (max-width: 479px) {
+  ._title_1pi7f_13 {
+    font-size: 24px;
+  }
+}

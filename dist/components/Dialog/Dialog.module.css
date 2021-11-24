@@ -1,0 +1,15 @@
+._dialog_18t28_1 {
+  width: 100vw;
+  max-width: 450px;
+  max-height: 90vh;
+  padding: 24px;
+  overflow-y: auto;
+  color: #fff;
+  background-color: #202020;
+  border-radius: 6px;
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+._dialog_18t28_1::-webkit-scrollbar {
+  display: none;
+}

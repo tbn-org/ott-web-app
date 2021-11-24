@@ -1,0 +1,28 @@
+._loadingOverlay_wjbso_1 {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+._fixed_wjbso_7 {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 10;
+  width: 100vw;
+  height: calc(100vh - calc(100vh - 100%));
+  background-color: var(--body-background-color);
+}
+
+._transparent_wjbso_17 {
+  opacity: 0.5;
+}
+
+._inline_wjbso_21 {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.3);
+}

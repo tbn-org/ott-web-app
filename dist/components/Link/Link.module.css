@@ -1,0 +1,9 @@
+._link_1uj3n_1 {
+  display: inline-block;
+  color: var(--primary-color);
+  font-weight: var(--body-font-weight-bold);
+  text-decoration: none;
+}
+._link_1uj3n_1:hover, ._link_1uj3n_1:focus {
+  text-decoration: underline;
+}

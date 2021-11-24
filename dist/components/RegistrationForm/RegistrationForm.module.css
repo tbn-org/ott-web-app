@@ -1,0 +1,28 @@
+._title_pxcok_1 {
+  margin-bottom: 24px;
+  font-weight: var(--body-font-weight-bold);
+  font-size: 24px;
+}
+
+._continue_pxcok_7 {
+  margin: 16px 0;
+}
+
+._bottom_pxcok_11 {
+  padding: 16px 0;
+  text-align: center;
+}
+
+._alreadyAccount_pxcok_16 {
+  font-size: 16px;
+}
+
+._login_pxcok_20 {
+  margin-left: 6px;
+  font-weight: var(--body-font-weight-bold);
+  cursor: pointer;
+}
+
+._login_pxcok_20:hover, ._login_pxcok_20:focus {
+  text-decoration: underline;
+}

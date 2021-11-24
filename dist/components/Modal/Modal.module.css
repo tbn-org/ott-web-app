@@ -1,0 +1,23 @@
+._modal_1bhca_1 {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: calc(100vh - calc(100vh - 100%));
+}
+
+._backdrop_1bhca_9 {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.8);
+}
+
+._container_1bhca_18 {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+}

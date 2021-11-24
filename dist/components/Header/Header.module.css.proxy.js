@@ -1,0 +1,14 @@
+
+export let code = "._header_1gnyv_1 {\n  height: 56px;\n  padding: 10px 64px;\n  color: var(--header-contrast-color, #fff);\n  background: var(--header-background, transparent);\n}\n._header_1gnyv_1._fixed_1gnyv_7 {\n  position: fixed;\n  z-index: 15;\n  width: 100%;\n}\n._header_1gnyv_1._static_1gnyv_12 {\n  position: static;\n  width: 100%;\n}\n._container_1gnyv_17 {\n  position: relative;\n  display: flex;\n  flex-direction: row;\n  height: 100%;\n}\n._menu_1gnyv_24 {\n  display: none;\n}\n._iconButton_1gnyv_28 {\n  width: 36px;\n  height: 36px;\n}\n._iconButton_1gnyv_28 > svg {\n  fill: currentColor;\n}\n._brand_1gnyv_36 {\n  align-self: center;\n  margin-right: 16px;\n}\n._nav_1gnyv_41 {\n  display: inline-block;\n  flex: 1;\n  align-items: center;\n}\n._nav_1gnyv_41 > a {\n  height: 36px;\n  min-height: 36px;\n  margin: 0 6px;\n  font-weight: var(--body-font-weight-bold);\n  font-size: 18px;\n}\n._search_1gnyv_54 {\n  max-width: 180px;\n}\n._mobileSearch_1gnyv_58 {\n  position: absolute;\n  right: 0;\n  left: 0;\n  display: flex;\n}\n._mobileSearch_1gnyv_58 > div:first-child {\n  flex: 1;\n}\n._mobileSearchActive_1gnyv_68 ._menu_1gnyv_24,\n._mobileSearchActive_1gnyv_68 ._brand_1gnyv_36 {\n  display: none;\n}\n._buttonContainer_1gnyv_73 > button:first-child {\n  margin-right: 8px;\n  margin-left: 16px;\n}\n._userMenuButton_1gnyv_78 {\n  margin-left: 8px;\n}\n._brandCentered_1gnyv_82 ._brand_1gnyv_36 {\n  text-align: center;\n}\n@media screen and (max-width: 1023px) {\n  ._header_1gnyv_1 {\n    height: 56px;\n    padding: 10px 32px;\n  }\n\n  ._menu_1gnyv_24 {\n    display: block;\n  }\n\n  ._brand_1gnyv_36 {\n    flex: 1;\n    margin: 0;\n    margin-left: 8px;\n    text-align: left;\n  }\n\n  ._nav_1gnyv_41 {\n    display: none;\n  }\n\n  ._search_1gnyv_54 {\n    text-align: right;\n  }\n}\n@media screen and (max-width: 479px) {\n  ._header_1gnyv_1 {\n    padding: 10px 16px;\n  }\n\n  ._menu_1gnyv_24 {\n    width: 40px;\n  }\n\n  ._search_1gnyv_54 {\n    width: 40px;\n  }\n}";
+let json = {"header":"_header_1gnyv_1","fixed":"_fixed_1gnyv_7","static":"_static_1gnyv_12","container":"_container_1gnyv_17","menu":"_menu_1gnyv_24","iconButton":"_iconButton_1gnyv_28","brand":"_brand_1gnyv_36","nav":"_nav_1gnyv_41","search":"_search_1gnyv_54","mobileSearch":"_mobileSearch_1gnyv_58","mobileSearchActive":"_mobileSearchActive_1gnyv_68","buttonContainer":"_buttonContainer_1gnyv_73","userMenuButton":"_userMenuButton_1gnyv_78","brandCentered":"_brandCentered_1gnyv_82"};
+export default json;
+
+// [snowpack] add styles to the page (skip if no document exists)
+if (typeof document !== 'undefined') {
+  const styleEl = document.createElement("style");
+  const codeEl = document.createTextNode(code);
+  styleEl.type = 'text/css';
+
+  styleEl.appendChild(codeEl);
+  document.head.appendChild(styleEl);
+}

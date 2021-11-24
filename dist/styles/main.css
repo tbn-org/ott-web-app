@@ -1,0 +1,64 @@
+:root {
+  --primary-color: #fff;
+  --body-background-color: #141523;
+  --body-font-family: Helvetica, Arial, sans-serif;
+  --body-alt-font-family: Trebuchet MS, Helvetica, Arial, sans-serif;
+  --body-font-weight-regular: 500;
+  --body-font-weight-bold: 700;
+  --body-color: #fff;
+  --card-color: #fff;
+  --card-border-hover-color: #fff;
+  --card-tag-bg: #2b2c39;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;
+  overflow-y: scroll;
+  color: var(--body-color);
+  font-family: var(--body-font-family);
+  font-size: 16px;
+  background-color: var(--body-background-color);
+  -webkit-font-smoothing: antialiased;
+}
+
+button {
+  width: auto;
+  margin: 0;
+  padding: 0;
+  overflow: visible;
+  color: inherit;
+  font: inherit;
+  line-height: normal;
+  background: transparent;
+  border: none;
+  border: 0;
+  outline: none;
+  appearance: none;
+  -webkit-font-smoothing: inherit;
+  -moz-osx-font-smoothing: inherit;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  margin: 0;
+  padding: 0;
+  font: inherit;
+}
+
+*,
+::after,
+::before {
+  box-sizing: border-box;
+}
+
+@media screen and (max-width: 1023px) {
+  body {
+    font-size: 18px;
+  }
+}
