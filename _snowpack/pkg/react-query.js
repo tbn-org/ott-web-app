@@ -1,7 +1,9 @@
+import { r as reactDom } from './common/index-09ea300a.js';
 import { _ as _extends } from './common/extends-7477639a.js';
 import { r as react } from './common/index-04edb6a1.js';
-import { _ as _inheritsLoose } from './common/inheritsLoose-a99a548f.js';
+import { _ as _inheritsLoose } from './common/inheritsLoose-978d85dc.js';
 import './common/_commonjsHelpers-8c19dec8.js';
+import './common/setPrototypeOf-adc775f4.js';
 
 var Subscribable = /*#__PURE__*/function () {
   function Subscribable() {
@@ -53,7 +55,7 @@ function functionalUpdate(updater, input) {
 function isValidTimeout(value) {
   return typeof value === 'number' && value >= 0 && value !== Infinity;
 }
-function ensureArray(value) {
+function ensureQueryKeyArray(value) {
   return Array.isArray(value) ? value : [value];
 }
 function timeUntilStale(updatedAt, staleTime) {
@@ -102,6 +104,18 @@ function parseFilterArgs(arg1, arg2, arg3) {
     queryKey: arg1
   }), arg3] : [arg1 || {}, arg2];
 }
+function mapQueryStatusFilter(active, inactive) {
+  if (active === true && inactive === true || active == null && inactive == null) {
+    return 'all';
+  } else if (active === false && inactive === false) {
+    return 'none';
+  } else {
+    // At this point, active|inactive can only be true|false or false|true
+    // so, when only one value is provided, the missing one has to be the negated value
+    var isActive = active != null ? active : !inactive;
+    return isActive ? 'active' : 'inactive';
+  }
+}
 function matchQuery(filters, query) {
   var active = filters.active,
       exact = filters.exact,
@@ -121,16 +135,20 @@ function matchQuery(filters, query) {
     }
   }
 
-  var isActive;
+  var queryStatusFilter = mapQueryStatusFilter(active, inactive);
 
-  if (inactive === false || active && !inactive) {
-    isActive = true;
-  } else if (active === false || inactive && !active) {
-    isActive = false;
-  }
-
-  if (typeof isActive === 'boolean' && query.isActive() !== isActive) {
+  if (queryStatusFilter === 'none') {
     return false;
+  } else if (queryStatusFilter !== 'all') {
+    var isActive = query.isActive();
+
+    if (queryStatusFilter === 'active' && !isActive) {
+      return false;
+    }
+
+    if (queryStatusFilter === 'inactive' && isActive) {
+      return false;
+    }
   }
 
   if (typeof stale === 'boolean' && query.isStale() !== stale) {
@@ -186,7 +204,7 @@ function hashQueryKeyByOptions(queryKey, options) {
  */
 
 function hashQueryKey(queryKey) {
-  var asArray = Array.isArray(queryKey) ? queryKey : [queryKey];
+  var asArray = ensureQueryKeyArray(queryKey);
   return stableValueHash(asArray);
 }
 /**
@@ -206,7 +224,7 @@ function stableValueHash(value) {
  */
 
 function partialMatchKey(a, b) {
-  return partialDeepEqual(ensureArray(a), ensureArray(b));
+  return partialDeepEqual(ensureQueryKeyArray(a), ensureQueryKeyArray(b));
 }
 /**
  * Checks if `b` partially matches with `a`.
@@ -333,6 +351,11 @@ function scheduleMicrotask(callback) {
     });
   });
 }
+function getAbortController() {
+  if (typeof AbortController === 'function') {
+    return new AbortController();
+  }
+}
 
 var FocusManager = /*#__PURE__*/function (_Subscribable) {
   _inheritsLoose(FocusManager, _Subscribable);
@@ -397,13 +420,17 @@ var FocusManager = /*#__PURE__*/function (_Subscribable) {
 
     if (!isServer && ((_window = window) == null ? void 0 : _window.addEventListener)) {
       this.setEventListener(function (onFocus) {
-        // Listen to visibillitychange and focus
-        window.addEventListener('visibilitychange', onFocus, false);
-        window.addEventListener('focus', onFocus, false);
+        var listener = function listener() {
+          return onFocus();
+        }; // Listen to visibillitychange and focus
+
+
+        window.addEventListener('visibilitychange', listener, false);
+        window.addEventListener('focus', listener, false);
         return function () {
           // Be sure to unsubscribe if a new handler is set
-          window.removeEventListener('visibilitychange', onFocus);
-          window.removeEventListener('focus', onFocus);
+          window.removeEventListener('visibilitychange', listener);
+          window.removeEventListener('focus', listener);
         };
       });
     }
@@ -520,6 +547,7 @@ var Retryer = function Retryer(config) {
   var continueFn;
   var promiseResolve;
   var promiseReject;
+  this.abort = config.abort;
 
   this.cancel = function (cancelOptions) {
     return cancelFn == null ? void 0 : cancelFn(cancelOptions);
@@ -527,6 +555,10 @@ var Retryer = function Retryer(config) {
 
   this.cancelRetry = function () {
     cancelRetry = true;
+  };
+
+  this.continueRetry = function () {
+    cancelRetry = false;
   };
 
   this.continue = function () {
@@ -590,7 +622,8 @@ var Retryer = function Retryer(config) {
 
     cancelFn = function cancelFn(cancelOptions) {
       if (!_this.isResolved) {
-        reject(new CancelledError(cancelOptions)); // Cancel transport if supported
+        reject(new CancelledError(cancelOptions));
+        _this.abort == null ? void 0 : _this.abort(); // Cancel transport if supported
 
         if (isCancelable(promiseOrValue)) {
           try {
@@ -742,22 +775,23 @@ var NotifyManager = /*#__PURE__*/function () {
   return NotifyManager;
 }(); // SINGLETON
 
-
 var notifyManager = new NotifyManager();
 
+// TYPES
 // FUNCTIONS
-var logger = console || {
-  error: noop,
-  warn: noop,
-  log: noop
-};
+var logger = console;
 function getLogger() {
   return logger;
+}
+function setLogger(newLogger) {
+  logger = newLogger;
 }
 
 // CLASS
 var Query = /*#__PURE__*/function () {
   function Query(config) {
+    this.abortSignalConsumed = false;
+    this.hadObservers = false;
     this.defaultOptions = config.defaultOptions;
     this.setOptions(config.options);
     this.observers = [];
@@ -766,6 +800,7 @@ var Query = /*#__PURE__*/function () {
     this.queryHash = config.queryHash;
     this.initialState = config.state || this.getDefaultState(this.options);
     this.state = this.initialState;
+    this.meta = config.meta;
     this.scheduleGc();
   }
 
@@ -774,7 +809,8 @@ var Query = /*#__PURE__*/function () {
   _proto.setOptions = function setOptions(options) {
     var _this$options$cacheTi;
 
-    this.options = _extends({}, this.defaultOptions, options); // Default to 5 minutes if not cache time is set
+    this.options = _extends({}, this.defaultOptions, options);
+    this.meta = options == null ? void 0 : options.meta; // Default to 5 minutes if not cache time is set
 
     this.cacheTime = Math.max(this.cacheTime || 0, (_this$options$cacheTi = this.options.cacheTime) != null ? _this$options$cacheTi : 5 * 60 * 1000);
   };
@@ -801,8 +837,14 @@ var Query = /*#__PURE__*/function () {
   };
 
   _proto.optionalRemove = function optionalRemove() {
-    if (!this.observers.length && !this.state.isFetching) {
-      this.cache.remove(this);
+    if (!this.observers.length) {
+      if (this.state.isFetching) {
+        if (this.hadObservers) {
+          this.scheduleGc();
+        }
+      } else {
+        this.cache.remove(this);
+      }
     }
   };
 
@@ -913,7 +955,8 @@ var Query = /*#__PURE__*/function () {
 
   _proto.addObserver = function addObserver(observer) {
     if (this.observers.indexOf(observer) === -1) {
-      this.observers.push(observer); // Stop the query from being garbage collected
+      this.observers.push(observer);
+      this.hadObservers = true; // Stop the query from being garbage collected
 
       this.clearGcTimeout();
       this.cache.notify({
@@ -934,7 +977,7 @@ var Query = /*#__PURE__*/function () {
         // If the transport layer does not support cancellation
         // we'll let the query continue so the result can be cached
         if (this.retryer) {
-          if (this.retryer.isTransportCancelable) {
+          if (this.retryer.isTransportCancelable || this.abortSignalConsumed) {
             this.retryer.cancel({
               revert: true
             });
@@ -958,6 +1001,10 @@ var Query = /*#__PURE__*/function () {
     }
   };
 
+  _proto.getObserversCount = function getObserversCount() {
+    return this.observers.length;
+  };
+
   _proto.invalidate = function invalidate() {
     if (!this.state.isInvalidated) {
       this.dispatch({
@@ -969,7 +1016,8 @@ var Query = /*#__PURE__*/function () {
   _proto.fetch = function fetch(options, fetchOptions) {
     var _this2 = this,
         _this$options$behavio,
-        _context$fetchOptions;
+        _context$fetchOptions,
+        _abortController$abor;
 
     if (this.state.isFetching) {
       if (this.state.dataUpdatedAt && (fetchOptions == null ? void 0 : fetchOptions.cancelRefetch)) {
@@ -978,7 +1026,11 @@ var Query = /*#__PURE__*/function () {
           silent: true
         });
       } else if (this.promise) {
-        // Return current promise if we are already fetching
+        var _this$retryer4;
+
+        // make sure that retries that were potentially cancelled due to unmounts can continue
+        (_this$retryer4 = this.retryer) == null ? void 0 : _this$retryer4.continueRetry(); // Return current promise if we are already fetching
+
         return this.promise;
       }
     } // Update config if passed, otherwise the config from the last execution is used
@@ -998,25 +1050,45 @@ var Query = /*#__PURE__*/function () {
       if (observer) {
         this.setOptions(observer.options);
       }
-    } // Create query function context
+    }
 
+    var queryKey = ensureQueryKeyArray(this.queryKey);
+    var abortController = getAbortController(); // Create query function context
 
     var queryFnContext = {
-      queryKey: this.queryKey,
-      pageParam: undefined
-    }; // Create fetch function
+      queryKey: queryKey,
+      pageParam: undefined,
+      meta: this.meta
+    };
+    Object.defineProperty(queryFnContext, 'signal', {
+      enumerable: true,
+      get: function get() {
+        if (abortController) {
+          _this2.abortSignalConsumed = true;
+          return abortController.signal;
+        }
+
+        return undefined;
+      }
+    }); // Create fetch function
 
     var fetchFn = function fetchFn() {
-      return _this2.options.queryFn ? _this2.options.queryFn(queryFnContext) : Promise.reject('Missing queryFn');
+      if (!_this2.options.queryFn) {
+        return Promise.reject('Missing queryFn');
+      }
+
+      _this2.abortSignalConsumed = false;
+      return _this2.options.queryFn(queryFnContext);
     }; // Trigger behavior hook
 
 
     var context = {
       fetchOptions: fetchOptions,
       options: this.options,
-      queryKey: this.queryKey,
+      queryKey: queryKey,
       state: this.state,
-      fetchFn: fetchFn
+      fetchFn: fetchFn,
+      meta: this.meta
     };
 
     if ((_this$options$behavio = this.options.behavior) == null ? void 0 : _this$options$behavio.onFetch) {
@@ -1040,9 +1112,12 @@ var Query = /*#__PURE__*/function () {
 
     this.retryer = new Retryer({
       fn: context.fetchFn,
+      abort: abortController == null ? void 0 : (_abortController$abor = abortController.abort) == null ? void 0 : _abortController$abor.bind(abortController),
       onSuccess: function onSuccess(data) {
-        _this2.setData(data); // Remove query after fetching if cache time is 0
+        _this2.setData(data); // Notify cache callback
 
+
+        _this2.cache.config.onSuccess == null ? void 0 : _this2.cache.config.onSuccess(data, _this2); // Remove query after fetching if cache time is 0
 
         if (_this2.cacheTime === 0) {
           _this2.optionalRemove();
@@ -1059,10 +1134,7 @@ var Query = /*#__PURE__*/function () {
 
         if (!isCancelledError(error)) {
           // Notify cache callback
-          if (_this2.cache.config.onError) {
-            _this2.cache.config.onError(error, _this2);
-          } // Log error
-
+          _this2.cache.config.onError == null ? void 0 : _this2.cache.config.onError(error, _this2); // Log error
 
           getLogger().error(error);
         } // Remove query after fetching if cache time is 0
@@ -1236,7 +1308,8 @@ var QueryCache = /*#__PURE__*/function (_Subscribable) {
         queryHash: queryHash,
         options: client.defaultQueryOptions(options),
         state: state,
-        defaultOptions: client.getQueryDefaults(queryKey)
+        defaultOptions: client.getQueryDefaults(queryKey),
+        meta: options.meta
       });
       this.add(query);
     }
@@ -1310,7 +1383,7 @@ var QueryCache = /*#__PURE__*/function (_Subscribable) {
     var _parseFilterArgs2 = parseFilterArgs(arg1, arg2),
         filters = _parseFilterArgs2[0];
 
-    return filters ? this.queries.filter(function (query) {
+    return Object.keys(filters).length > 0 ? this.queries.filter(function (query) {
       return matchQuery(filters, query);
     }) : this.queries;
   };
@@ -1356,6 +1429,7 @@ var Mutation = /*#__PURE__*/function () {
     this.mutationCache = config.mutationCache;
     this.observers = [];
     this.state = config.state || getDefaultState();
+    this.meta = config.meta;
   }
 
   var _proto = Mutation.prototype;
@@ -1410,6 +1484,9 @@ var Mutation = /*#__PURE__*/function () {
         variables: this.options.variables
       });
       promise = promise.then(function () {
+        // Notify cache callback
+        _this.mutationCache.config.onMutate == null ? void 0 : _this.mutationCache.config.onMutate(_this.state.variables, _this);
+      }).then(function () {
         return _this.options.onMutate == null ? void 0 : _this.options.onMutate(_this.state.variables);
       }).then(function (context) {
         if (context !== _this.state.context) {
@@ -1425,7 +1502,9 @@ var Mutation = /*#__PURE__*/function () {
     return promise.then(function () {
       return _this.executeMutation();
     }).then(function (result) {
-      data = result;
+      data = result; // Notify cache callback
+
+      _this.mutationCache.config.onSuccess == null ? void 0 : _this.mutationCache.config.onSuccess(data, _this.state.variables, _this.state.context, _this);
     }).then(function () {
       return _this.options.onSuccess == null ? void 0 : _this.options.onSuccess(data, _this.state.variables, _this.state.context);
     }).then(function () {
@@ -1439,10 +1518,7 @@ var Mutation = /*#__PURE__*/function () {
       return data;
     }).catch(function (error) {
       // Notify cache callback
-      if (_this.mutationCache.config.onError) {
-        _this.mutationCache.config.onError(error, _this.state.variables, _this.state.context, _this);
-      } // Log error
-
+      _this.mutationCache.config.onError == null ? void 0 : _this.mutationCache.config.onError(error, _this.state.variables, _this.state.context, _this); // Log error
 
       getLogger().error(error);
       return Promise.resolve().then(function () {
@@ -1594,7 +1670,8 @@ var MutationCache = /*#__PURE__*/function (_Subscribable) {
       mutationId: ++this.mutationId,
       options: client.defaultMutationOptions(options),
       state: state,
-      defaultOptions: options.mutationKey ? client.getMutationDefaults(options.mutationKey) : undefined
+      defaultOptions: options.mutationKey ? client.getMutationDefaults(options.mutationKey) : undefined,
+      meta: options.meta
     });
     this.add(mutation);
     return mutation;
@@ -1681,19 +1758,27 @@ function infiniteQueryBehavior() {
   return {
     onFetch: function onFetch(context) {
       context.fetchFn = function () {
-        var _context$fetchOptions, _context$fetchOptions2, _context$state$data, _context$state$data2;
+        var _context$fetchOptions, _context$fetchOptions2, _context$fetchOptions3, _context$fetchOptions4, _context$state$data, _context$state$data2;
 
-        var fetchMore = (_context$fetchOptions = context.fetchOptions) == null ? void 0 : (_context$fetchOptions2 = _context$fetchOptions.meta) == null ? void 0 : _context$fetchOptions2.fetchMore;
+        var refetchPage = (_context$fetchOptions = context.fetchOptions) == null ? void 0 : (_context$fetchOptions2 = _context$fetchOptions.meta) == null ? void 0 : _context$fetchOptions2.refetchPage;
+        var fetchMore = (_context$fetchOptions3 = context.fetchOptions) == null ? void 0 : (_context$fetchOptions4 = _context$fetchOptions3.meta) == null ? void 0 : _context$fetchOptions4.fetchMore;
         var pageParam = fetchMore == null ? void 0 : fetchMore.pageParam;
         var isFetchingNextPage = (fetchMore == null ? void 0 : fetchMore.direction) === 'forward';
         var isFetchingPreviousPage = (fetchMore == null ? void 0 : fetchMore.direction) === 'backward';
         var oldPages = ((_context$state$data = context.state.data) == null ? void 0 : _context$state$data.pages) || [];
         var oldPageParams = ((_context$state$data2 = context.state.data) == null ? void 0 : _context$state$data2.pageParams) || [];
+        var abortController = getAbortController();
+        var abortSignal = abortController == null ? void 0 : abortController.signal;
         var newPageParams = oldPageParams;
         var cancelled = false; // Get query function
 
         var queryFn = context.options.queryFn || function () {
           return Promise.reject('Missing queryFn');
+        };
+
+        var buildNewPages = function buildNewPages(pages, param, page, previous) {
+          newPageParams = previous ? [param].concat(newPageParams) : [].concat(newPageParams, [param]);
+          return previous ? [page].concat(pages) : [].concat(pages, [page]);
         }; // Create function to fetch a page
 
 
@@ -1708,12 +1793,13 @@ function infiniteQueryBehavior() {
 
           var queryFnContext = {
             queryKey: context.queryKey,
-            pageParam: param
+            signal: abortSignal,
+            pageParam: param,
+            meta: context.meta
           };
           var queryFnResult = queryFn(queryFnContext);
           var promise = Promise.resolve(queryFnResult).then(function (page) {
-            newPageParams = previous ? [param].concat(newPageParams) : [].concat(newPageParams, [param]);
-            return previous ? [page].concat(pages) : [].concat(pages, [page]);
+            return buildNewPages(pages, param, page, previous);
           });
 
           if (isCancelable(queryFnResult)) {
@@ -1744,14 +1830,22 @@ function infiniteQueryBehavior() {
             else {
                 (function () {
                   newPageParams = [];
-                  var manual = typeof context.options.getNextPageParam === 'undefined'; // Fetch first page
+                  var manual = typeof context.options.getNextPageParam === 'undefined';
+                  var shouldFetchFirstPage = refetchPage && oldPages[0] ? refetchPage(oldPages[0], 0, oldPages) : true; // Fetch first page
 
-                  promise = fetchPage([], manual, oldPageParams[0]); // Fetch remaining pages
+                  promise = shouldFetchFirstPage ? fetchPage([], manual, oldPageParams[0]) : Promise.resolve(buildNewPages([], oldPageParams[0], oldPages[0])); // Fetch remaining pages
 
                   var _loop = function _loop(i) {
                     promise = promise.then(function (pages) {
-                      var param = manual ? oldPageParams[i] : getNextPageParam(context.options, pages);
-                      return fetchPage(pages, manual, param);
+                      var shouldFetchNextPage = refetchPage && oldPages[i] ? refetchPage(oldPages[i], i, oldPages) : true;
+
+                      if (shouldFetchNextPage) {
+                        var _param2 = manual ? oldPageParams[i] : getNextPageParam(context.options, pages);
+
+                        return fetchPage(pages, manual, _param2);
+                      }
+
+                      return Promise.resolve(buildNewPages(pages, oldPageParams[i], oldPages[i]));
                     });
                   };
 
@@ -1771,6 +1865,7 @@ function infiniteQueryBehavior() {
 
         finalPromiseAsAny.cancel = function () {
           cancelled = true;
+          abortController == null ? void 0 : abortController.abort();
 
           if (isCancelable(promise)) {
             promise.cancel();
@@ -1851,10 +1946,30 @@ var QueryClient = /*#__PURE__*/function () {
     return (_this$queryCache$find = this.queryCache.find(queryKey, filters)) == null ? void 0 : _this$queryCache$find.state.data;
   };
 
+  _proto.getQueriesData = function getQueriesData(queryKeyOrFilters) {
+    return this.getQueryCache().findAll(queryKeyOrFilters).map(function (_ref) {
+      var queryKey = _ref.queryKey,
+          state = _ref.state;
+      var data = state.data;
+      return [queryKey, data];
+    });
+  };
+
   _proto.setQueryData = function setQueryData(queryKey, updater, options) {
     var parsedOptions = parseQueryArgs(queryKey);
     var defaultedOptions = this.defaultQueryOptions(parsedOptions);
     return this.queryCache.build(this, defaultedOptions).setData(updater, options);
+  };
+
+  _proto.setQueriesData = function setQueriesData(queryKeyOrFilters, updater, options) {
+    var _this2 = this;
+
+    return notifyManager.batch(function () {
+      return _this2.getQueryCache().findAll(queryKeyOrFilters).map(function (_ref2) {
+        var queryKey = _ref2.queryKey;
+        return [queryKey, _this2.setQueryData(queryKey, updater, options)];
+      });
+    });
   };
 
   _proto.getQueryState = function getQueryState(queryKey, filters) {
@@ -1876,7 +1991,7 @@ var QueryClient = /*#__PURE__*/function () {
   };
 
   _proto.resetQueries = function resetQueries(arg1, arg2, arg3) {
-    var _this2 = this;
+    var _this3 = this;
 
     var _parseFilterArgs3 = parseFilterArgs(arg1, arg2, arg3),
         filters = _parseFilterArgs3[0],
@@ -1892,12 +2007,12 @@ var QueryClient = /*#__PURE__*/function () {
       queryCache.findAll(filters).forEach(function (query) {
         query.reset();
       });
-      return _this2.refetchQueries(refetchFilters, options);
+      return _this3.refetchQueries(refetchFilters, options);
     });
   };
 
   _proto.cancelQueries = function cancelQueries(arg1, arg2, arg3) {
-    var _this3 = this;
+    var _this4 = this;
 
     var _parseFilterArgs4 = parseFilterArgs(arg1, arg2, arg3),
         filters = _parseFilterArgs4[0],
@@ -1909,7 +2024,7 @@ var QueryClient = /*#__PURE__*/function () {
     }
 
     var promises = notifyManager.batch(function () {
-      return _this3.queryCache.findAll(filters).map(function (query) {
+      return _this4.queryCache.findAll(filters).map(function (query) {
         return query.cancel(cancelOptions);
       });
     });
@@ -1917,37 +2032,45 @@ var QueryClient = /*#__PURE__*/function () {
   };
 
   _proto.invalidateQueries = function invalidateQueries(arg1, arg2, arg3) {
-    var _filters$refetchActiv,
-        _this4 = this;
+    var _ref3,
+        _filters$refetchActiv,
+        _filters$refetchInact,
+        _this5 = this;
 
     var _parseFilterArgs5 = parseFilterArgs(arg1, arg2, arg3),
         filters = _parseFilterArgs5[0],
         options = _parseFilterArgs5[1];
 
     var refetchFilters = _extends({}, filters, {
-      active: (_filters$refetchActiv = filters.refetchActive) != null ? _filters$refetchActiv : true,
-      inactive: filters.refetchInactive
+      // if filters.refetchActive is not provided and filters.active is explicitly false,
+      // e.g. invalidateQueries({ active: false }), we don't want to refetch active queries
+      active: (_ref3 = (_filters$refetchActiv = filters.refetchActive) != null ? _filters$refetchActiv : filters.active) != null ? _ref3 : true,
+      inactive: (_filters$refetchInact = filters.refetchInactive) != null ? _filters$refetchInact : false
     });
 
     return notifyManager.batch(function () {
-      _this4.queryCache.findAll(filters).forEach(function (query) {
+      _this5.queryCache.findAll(filters).forEach(function (query) {
         query.invalidate();
       });
 
-      return _this4.refetchQueries(refetchFilters, options);
+      return _this5.refetchQueries(refetchFilters, options);
     });
   };
 
   _proto.refetchQueries = function refetchQueries(arg1, arg2, arg3) {
-    var _this5 = this;
+    var _this6 = this;
 
     var _parseFilterArgs6 = parseFilterArgs(arg1, arg2, arg3),
         filters = _parseFilterArgs6[0],
         options = _parseFilterArgs6[1];
 
     var promises = notifyManager.batch(function () {
-      return _this5.queryCache.findAll(filters).map(function (query) {
-        return query.fetch();
+      return _this6.queryCache.findAll(filters).map(function (query) {
+        return query.fetch(undefined, _extends({}, options, {
+          meta: {
+            refetchPage: filters == null ? void 0 : filters.refetchPage
+          }
+        }));
       });
     });
     var promise = Promise.all(promises).then(noop);
@@ -1986,10 +2109,10 @@ var QueryClient = /*#__PURE__*/function () {
   };
 
   _proto.cancelMutations = function cancelMutations() {
-    var _this6 = this;
+    var _this7 = this;
 
     var promises = notifyManager.batch(function () {
-      return _this6.mutationCache.getAll().map(function (mutation) {
+      return _this7.mutationCache.getAll().map(function (mutation) {
         return mutation.cancel();
       });
     });
@@ -2188,11 +2311,12 @@ var QueryObserver = /*#__PURE__*/function (_Subscribable) {
 
     if (mounted && (this.currentQuery !== prevQuery || this.options.enabled !== prevOptions.enabled || this.options.staleTime !== prevOptions.staleTime)) {
       this.updateStaleTimeout();
-    } // Update refetch interval if needed
+    }
 
+    var nextRefetchInterval = this.computeRefetchInterval(); // Update refetch interval if needed
 
-    if (mounted && (this.currentQuery !== prevQuery || this.options.enabled !== prevOptions.enabled || this.options.refetchInterval !== prevOptions.refetchInterval)) {
-      this.updateRefetchInterval();
+    if (mounted && (this.currentQuery !== prevQuery || this.options.enabled !== prevOptions.enabled || nextRefetchInterval !== this.currentRefetchInterval)) {
+      this.updateRefetchInterval(nextRefetchInterval);
     }
   };
 
@@ -2206,25 +2330,32 @@ var QueryObserver = /*#__PURE__*/function (_Subscribable) {
     return this.currentResult;
   };
 
-  _proto.trackResult = function trackResult(result) {
+  _proto.trackResult = function trackResult(result, defaultedOptions) {
     var _this2 = this;
 
     var trackedResult = {};
+
+    var trackProp = function trackProp(key) {
+      if (!_this2.trackedProps.includes(key)) {
+        _this2.trackedProps.push(key);
+      }
+    };
+
     Object.keys(result).forEach(function (key) {
       Object.defineProperty(trackedResult, key, {
         configurable: false,
         enumerable: true,
         get: function get() {
-          var typedKey = key;
-
-          if (!_this2.trackedProps.includes(typedKey)) {
-            _this2.trackedProps.push(typedKey);
-          }
-
-          return result[typedKey];
+          trackProp(key);
+          return result[key];
         }
       });
     });
+
+    if (defaultedOptions.useErrorBoundary || defaultedOptions.suspense) {
+      trackProp('error');
+    }
+
     return trackedResult;
   };
 
@@ -2255,7 +2386,11 @@ var QueryObserver = /*#__PURE__*/function (_Subscribable) {
   };
 
   _proto.refetch = function refetch(options) {
-    return this.fetch(options);
+    return this.fetch(_extends({}, options, {
+      meta: {
+        refetchPage: options == null ? void 0 : options.refetchPage
+      }
+    }));
   };
 
   _proto.fetchOptimistic = function fetchOptimistic(options) {
@@ -2311,12 +2446,19 @@ var QueryObserver = /*#__PURE__*/function (_Subscribable) {
     }, timeout);
   };
 
-  _proto.updateRefetchInterval = function updateRefetchInterval() {
+  _proto.computeRefetchInterval = function computeRefetchInterval() {
+    var _this$options$refetch;
+
+    return typeof this.options.refetchInterval === 'function' ? this.options.refetchInterval(this.currentResult.data, this.currentQuery) : (_this$options$refetch = this.options.refetchInterval) != null ? _this$options$refetch : false;
+  };
+
+  _proto.updateRefetchInterval = function updateRefetchInterval(nextInterval) {
     var _this7 = this;
 
     this.clearRefetchInterval();
+    this.currentRefetchInterval = nextInterval;
 
-    if (isServer || this.options.enabled === false || !isValidTimeout(this.options.refetchInterval)) {
+    if (isServer || this.options.enabled === false || !isValidTimeout(this.currentRefetchInterval) || this.currentRefetchInterval === 0) {
       return;
     }
 
@@ -2324,12 +2466,12 @@ var QueryObserver = /*#__PURE__*/function (_Subscribable) {
       if (_this7.options.refetchIntervalInBackground || focusManager.isFocused()) {
         _this7.executeFetch();
       }
-    }, this.options.refetchInterval);
+    }, this.currentRefetchInterval);
   };
 
   _proto.updateTimers = function updateTimers() {
     this.updateStaleTimeout();
-    this.updateRefetchInterval();
+    this.updateRefetchInterval(this.computeRefetchInterval());
   };
 
   _proto.clearTimers = function clearTimers() {
@@ -2414,13 +2556,31 @@ var QueryObserver = /*#__PURE__*/function (_Subscribable) {
         } // Show placeholder data if needed
 
 
-    if (typeof options.placeholderData !== 'undefined' && typeof data === 'undefined' && status === 'loading') {
+    if (typeof options.placeholderData !== 'undefined' && typeof data === 'undefined' && (status === 'loading' || status === 'idle')) {
       var placeholderData; // Memoize placeholder data
 
       if ((prevResult == null ? void 0 : prevResult.isPlaceholderData) && options.placeholderData === (prevResultOptions == null ? void 0 : prevResultOptions.placeholderData)) {
         placeholderData = prevResult.data;
       } else {
         placeholderData = typeof options.placeholderData === 'function' ? options.placeholderData() : options.placeholderData;
+
+        if (options.select && typeof placeholderData !== 'undefined') {
+          try {
+            placeholderData = options.select(placeholderData);
+
+            if (options.structuralSharing !== false) {
+              placeholderData = replaceEqualDeep(prevResult == null ? void 0 : prevResult.data, placeholderData);
+            }
+
+            this.previousSelectError = null;
+          } catch (selectError) {
+            getLogger().error(selectError);
+            error = selectError;
+            this.previousSelectError = selectError;
+            errorUpdatedAt = Date.now();
+            status = 'error';
+          }
+        }
       }
 
       if (typeof placeholderData !== 'undefined') {
@@ -2444,6 +2604,7 @@ var QueryObserver = /*#__PURE__*/function (_Subscribable) {
       isFetched: state.dataUpdateCount > 0 || state.errorUpdateCount > 0,
       isFetchedAfterMount: state.dataUpdateCount > queryInitialState.dataUpdateCount || state.errorUpdateCount > queryInitialState.errorUpdateCount,
       isFetching: isFetching,
+      isRefetching: isFetching && status !== 'loading',
       isLoadingError: status === 'error' && state.dataUpdatedAt === 0,
       isPlaceholderData: isPlaceholderData,
       isPreviousData: isPreviousData,
@@ -2458,10 +2619,6 @@ var QueryObserver = /*#__PURE__*/function (_Subscribable) {
   _proto.shouldNotifyListeners = function shouldNotifyListeners(result, prevResult) {
     if (!prevResult) {
       return true;
-    }
-
-    if (result === prevResult) {
-      return false;
     }
 
     var _this$options = this.options,
@@ -2535,7 +2692,7 @@ var QueryObserver = /*#__PURE__*/function (_Subscribable) {
 
     if (action.type === 'success') {
       notifyOptions.onSuccess = true;
-    } else if (action.type === 'error') {
+    } else if (action.type === 'error' && !isCancelledError(action.error)) {
       notifyOptions.onError = true;
     }
 
@@ -2600,7 +2757,7 @@ function _shouldFetchOnWindowFocus(query, options) {
 }
 
 function shouldFetchOptionally(query, prevQuery, options, prevOptions) {
-  return options.enabled !== false && (query !== prevQuery || prevOptions.enabled === false) && isStale(query, options);
+  return options.enabled !== false && (query !== prevQuery || prevOptions.enabled === false) && (!options.suspense || query.state.status !== 'error' || prevOptions.enabled === false) && isStale(query, options);
 }
 
 function isStale(query, options) {
@@ -2689,7 +2846,8 @@ var MutationObserver = /*#__PURE__*/function (_Subscribable) {
 
   _proto.updateResult = function updateResult() {
     var state = this.currentMutation ? this.currentMutation.state : getDefaultState();
-    this.currentResult = _extends({}, state, {
+
+    var result = _extends({}, state, {
       isLoading: state.status === 'loading',
       isSuccess: state.status === 'success',
       isError: state.status === 'error',
@@ -2697,6 +2855,8 @@ var MutationObserver = /*#__PURE__*/function (_Subscribable) {
       mutate: this.mutate,
       reset: this.reset
     });
+
+    this.currentResult = result;
   };
 
   _proto.notify = function notify(options) {
@@ -2725,6 +2885,14 @@ var MutationObserver = /*#__PURE__*/function (_Subscribable) {
 
   return MutationObserver;
 }(Subscribable);
+
+var unstable_batchedUpdates = reactDom.unstable_batchedUpdates;
+
+notifyManager.setBatchNotifyFunction(unstable_batchedUpdates);
+
+var logger$1 = console;
+
+setLogger(logger$1);
 
 var defaultContext = /*#__PURE__*/react.createContext(undefined);
 var QueryClientSharingContext = /*#__PURE__*/react.createContext(false); // if contextSharing is on, we share the first and at least one
@@ -2795,6 +2963,18 @@ var useQueryErrorResetBoundary = function useQueryErrorResetBoundary() {
   return react.useContext(QueryErrorResetBoundaryContext);
 }; // COMPONENT
 
+function shouldThrowError(suspense, _useErrorBoundary, error) {
+  // Allow useErrorBoundary function to override throwing behavior on a per-error basis
+  if (typeof _useErrorBoundary === 'function') {
+    return _useErrorBoundary(error);
+  } // Allow useErrorBoundary to override suspense's throwing behavior
+
+
+  if (typeof _useErrorBoundary === 'boolean') return _useErrorBoundary; // If suspense is enabled default to throwing errors
+
+  return !!suspense;
+}
+
 function useMutation(arg1, arg2, arg3) {
   var mountedRef = react.useRef(false);
 
@@ -2830,7 +3010,7 @@ function useMutation(arg1, arg2, arg3) {
     obsRef.current.mutate(variables, mutateOptions).catch(noop);
   }, []);
 
-  if (currentResult.error && obsRef.current.options.useErrorBoundary) {
+  if (currentResult.error && shouldThrowError(undefined, obsRef.current.options.useErrorBoundary, currentResult.error)) {
     throw currentResult.error;
   }
 
@@ -2869,6 +3049,12 @@ function useBaseQuery(options, Observer) {
     // fetching again when directly mounting after suspending
     if (typeof defaultedOptions.staleTime !== 'number') {
       defaultedOptions.staleTime = 1000;
+    } // Set cache time to 1 if the option has been set to 0
+    // when using suspense to prevent infinite loop of fetches
+
+
+    if (defaultedOptions.cacheTime === 0) {
+      defaultedOptions.cacheTime = 1;
     }
   }
 
@@ -2879,17 +3065,16 @@ function useBaseQuery(options, Observer) {
     }
   }
 
-  var obsRef = react.useRef();
+  var _React$useState2 = react.useState(function () {
+    return new Observer(queryClient, defaultedOptions);
+  }),
+      observer = _React$useState2[0];
 
-  if (!obsRef.current) {
-    obsRef.current = new Observer(queryClient, defaultedOptions);
-  }
-
-  var result = obsRef.current.getOptimisticResult(defaultedOptions);
+  var result = observer.getOptimisticResult(defaultedOptions);
   react.useEffect(function () {
     mountedRef.current = true;
     errorResetBoundary.clearReset();
-    var unsubscribe = obsRef.current.subscribe(notifyManager.batchCalls(function () {
+    var unsubscribe = observer.subscribe(notifyManager.batchCalls(function () {
       if (mountedRef.current) {
         forceUpdate(function (x) {
           return x + 1;
@@ -2898,22 +3083,22 @@ function useBaseQuery(options, Observer) {
     })); // Update result to make sure we did not miss any query updates
     // between creating the observer and subscribing to it.
 
-    obsRef.current.updateResult();
+    observer.updateResult();
     return function () {
       mountedRef.current = false;
       unsubscribe();
     };
-  }, [errorResetBoundary]);
+  }, [errorResetBoundary, observer]);
   react.useEffect(function () {
     // Do not notify on updates because of changes in the options because
     // these changes should already be reflected in the optimistic result.
-    obsRef.current.setOptions(defaultedOptions, {
+    observer.setOptions(defaultedOptions, {
       listeners: false
     });
-  }, [defaultedOptions]); // Handle suspense
+  }, [defaultedOptions, observer]); // Handle suspense
 
   if (defaultedOptions.suspense && result.isLoading) {
-    throw obsRef.current.fetchOptimistic(defaultedOptions).then(function (_ref) {
+    throw observer.fetchOptimistic(defaultedOptions).then(function (_ref) {
       var data = _ref.data;
       defaultedOptions.onSuccess == null ? void 0 : defaultedOptions.onSuccess(data);
       defaultedOptions.onSettled == null ? void 0 : defaultedOptions.onSettled(data, null);
@@ -2925,13 +3110,13 @@ function useBaseQuery(options, Observer) {
   } // Handle error boundary
 
 
-  if ((defaultedOptions.suspense || defaultedOptions.useErrorBoundary) && result.isError) {
+  if (result.isError && !errorResetBoundary.isReset() && !result.isFetching && shouldThrowError(defaultedOptions.suspense, defaultedOptions.useErrorBoundary, result.error)) {
     throw result.error;
   } // Handle result property usage tracking
 
 
   if (defaultedOptions.notifyOnChangeProps === 'tracked') {
-    result = obsRef.current.trackResult(result);
+    result = observer.trackResult(result, defaultedOptions);
   }
 
   return result;

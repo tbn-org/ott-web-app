@@ -1,4 +1,7 @@
-import { c as createCommonjsModule, g as getDefaultExportFromCjs } from './common/_commonjsHelpers-8c19dec8.js';
+import { _ as _createClass, a as _classCallCheck } from './common/createClass-b2d5451e.js';
+import { _ as _typeof$1 } from './common/typeof-cbc37410.js';
+import { _ as _setPrototypeOf } from './common/setPrototypeOf-adc775f4.js';
+import './common/_commonjsHelpers-8c19dec8.js';
 
 function _typeof(obj) {
   "@babel/helpers - typeof";
@@ -37,7 +40,7 @@ function _objectSpread(target) {
     var ownKeys = Object.keys(source);
 
     if (typeof Object.getOwnPropertySymbols === 'function') {
-      ownKeys = ownKeys.concat(Object.getOwnPropertySymbols(source).filter(function (sym) {
+      ownKeys.push.apply(ownKeys, Object.getOwnPropertySymbols(source).filter(function (sym) {
         return Object.getOwnPropertyDescriptor(source, sym).enumerable;
       }));
     }
@@ -50,55 +53,6 @@ function _objectSpread(target) {
   return target;
 }
 
-function _classCallCheck(instance, Constructor) {
-  if (!(instance instanceof Constructor)) {
-    throw new TypeError("Cannot call a class as a function");
-  }
-}
-
-function _defineProperties(target, props) {
-  for (var i = 0; i < props.length; i++) {
-    var descriptor = props[i];
-    descriptor.enumerable = descriptor.enumerable || false;
-    descriptor.configurable = true;
-    if ("value" in descriptor) descriptor.writable = true;
-    Object.defineProperty(target, descriptor.key, descriptor);
-  }
-}
-
-function _createClass(Constructor, protoProps, staticProps) {
-  if (protoProps) _defineProperties(Constructor.prototype, protoProps);
-  if (staticProps) _defineProperties(Constructor, staticProps);
-  return Constructor;
-}
-
-var _typeof_1 = createCommonjsModule(function (module) {
-function _typeof(obj) {
-  "@babel/helpers - typeof";
-
-  if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") {
-    module.exports = _typeof = function _typeof(obj) {
-      return typeof obj;
-    };
-
-    module.exports["default"] = module.exports, module.exports.__esModule = true;
-  } else {
-    module.exports = _typeof = function _typeof(obj) {
-      return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj;
-    };
-
-    module.exports["default"] = module.exports, module.exports.__esModule = true;
-  }
-
-  return _typeof(obj);
-}
-
-module.exports = _typeof;
-module.exports["default"] = module.exports, module.exports.__esModule = true;
-});
-
-var _typeof$1 = /*@__PURE__*/getDefaultExportFromCjs(_typeof_1);
-
 function _assertThisInitialized(self) {
   if (self === void 0) {
     throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
@@ -110,6 +64,8 @@ function _assertThisInitialized(self) {
 function _possibleConstructorReturn(self, call) {
   if (call && (_typeof$1(call) === "object" || typeof call === "function")) {
     return call;
+  } else if (call !== void 0) {
+    throw new TypeError("Derived constructors may only return object or undefined");
   }
 
   return _assertThisInitialized(self);
@@ -120,15 +76,6 @@ function _getPrototypeOf(o) {
     return o.__proto__ || Object.getPrototypeOf(o);
   };
   return _getPrototypeOf(o);
-}
-
-function _setPrototypeOf(o, p) {
-  _setPrototypeOf = Object.setPrototypeOf || function _setPrototypeOf(o, p) {
-    o.__proto__ = p;
-    return o;
-  };
-
-  return _setPrototypeOf(o, p);
 }
 
 function _inherits(subClass, superClass) {
@@ -433,6 +380,8 @@ function deepFind(obj, path) {
   var current = obj;
 
   for (var i = 0; i < paths.length; ++i) {
+    if (!current) return undefined;
+
     if (typeof current[paths[i]] === 'string' && i + 1 < paths.length) {
       return undefined;
     }
@@ -684,6 +633,11 @@ var Translator = function (_EventEmitter) {
       var options = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {
         interpolation: {}
       };
+
+      if (key === undefined || key === null) {
+        return false;
+      }
+
       var resolved = this.resolve(key, options);
       return resolved && resolved.res !== undefined;
     }
@@ -807,6 +761,8 @@ var Translator = function (_EventEmitter) {
           res = key;
         }
 
+        var missingKeyNoValueFallbackToKey = options.missingKeyNoValueFallbackToKey || this.options.missingKeyNoValueFallbackToKey;
+        var resForMissing = missingKeyNoValueFallbackToKey && usedKey ? undefined : res;
         var updateMissing = hasDefaultValue && defaultValue !== res && this.options.updateMissing;
 
         if (usedKey || usedDefault || updateMissing) {
@@ -834,9 +790,9 @@ var Translator = function (_EventEmitter) {
 
           var send = function send(l, k, fallbackValue) {
             if (_this2.options.missingKeyHandler) {
-              _this2.options.missingKeyHandler(l, namespace, k, updateMissing ? fallbackValue : res, updateMissing, options);
+              _this2.options.missingKeyHandler(l, namespace, k, updateMissing ? fallbackValue : resForMissing, updateMissing, options);
             } else if (_this2.backendConnector && _this2.backendConnector.saveMissing) {
-              _this2.backendConnector.saveMissing(l, namespace, k, updateMissing ? fallbackValue : res, updateMissing, options);
+              _this2.backendConnector.saveMissing(l, namespace, k, updateMissing ? fallbackValue : resForMissing, updateMissing, options);
             }
 
             _this2.emit('missingKey', l, namespace, k, res);
@@ -857,7 +813,7 @@ var Translator = function (_EventEmitter) {
 
         res = this.extendTranslation(res, keys, options, resolved, lastKey);
         if (usedKey && res === key && this.options.appendNamespaceToMissingKey) res = "".concat(namespace, ":").concat(key);
-        if (usedKey && this.options.parseMissingKeyHandler) res = this.options.parseMissingKeyHandler(res);
+        if ((usedKey || usedDefault) && this.options.parseMissingKeyHandler) res = this.options.parseMissingKeyHandler(res);
       }
 
       return res;
@@ -942,7 +898,7 @@ var Translator = function (_EventEmitter) {
         var namespaces = extracted.namespaces;
         if (_this4.options.fallbackNS) namespaces = namespaces.concat(_this4.options.fallbackNS);
         var needsPluralHandling = options.count !== undefined && typeof options.count !== 'string';
-        var needsContextHandling = options.context !== undefined && typeof options.context === 'string' && options.context !== '';
+        var needsContextHandling = options.context !== undefined && (typeof options.context === 'string' || typeof options.context === 'number') && options.context !== '';
         var codes = options.lngs ? options.lngs : _this4.languageUtils.toResolveHierarchy(options.lng || _this4.language, options.fallbackLng);
         namespaces.forEach(function (ns) {
           if (_this4.isValidLookup(found)) return;
@@ -2137,7 +2093,7 @@ var I18n = function (_EventEmitter) {
 
       var load = function load() {
         var finish = function finish(err, t) {
-          if (_this2.isInitialized) _this2.logger.warn('init: i18next is already initialized. You should call init just once!');
+          if (_this2.isInitialized && !_this2.initializedStoreOnce) _this2.logger.warn('init: i18next is already initialized. You should call init just once!');
           _this2.isInitialized = true;
           if (!_this2.options.isClone) _this2.logger.log('initialized', _this2.options);
 
@@ -2313,7 +2269,7 @@ var I18n = function (_EventEmitter) {
     }
   }, {
     key: "getFixedT",
-    value: function getFixedT(lng, ns) {
+    value: function getFixedT(lng, ns, keyPrefix) {
       var _this5 = this;
 
       var fixedT = function fixedT(key, opts) {
@@ -2332,7 +2288,9 @@ var I18n = function (_EventEmitter) {
         options.lng = options.lng || fixedT.lng;
         options.lngs = options.lngs || fixedT.lngs;
         options.ns = options.ns || fixedT.ns;
-        return _this5.t(key, options);
+        var keySeparator = _this5.options.keySeparator || '.';
+        var resultKey = keyPrefix ? "".concat(keyPrefix).concat(keySeparator).concat(key) : key;
+        return _this5.t(resultKey, options);
       };
 
       if (typeof lng === 'string') {
@@ -2342,6 +2300,7 @@ var I18n = function (_EventEmitter) {
       }
 
       fixedT.ns = ns;
+      fixedT.keyPrefix = keyPrefix;
       return fixedT;
     }
   }, {

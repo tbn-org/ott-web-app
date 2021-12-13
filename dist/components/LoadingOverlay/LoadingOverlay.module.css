@@ -1,24 +1,24 @@
-._loadingOverlay_wjbso_1 {
+._loadingOverlay_96qzh_1 {
   display: flex;
   justify-content: center;
   align-items: center;
 }
 
-._fixed_wjbso_7 {
+._fixed_96qzh_7 {
   position: fixed;
   top: 0;
   left: 0;
   z-index: 10;
   width: 100vw;
-  height: calc(100vh - calc(100vh - 100%));
+  height: calc(100vh - (100vh - 100%));
   background-color: var(--body-background-color);
 }
 
-._transparent_wjbso_17 {
+._transparent_96qzh_17 {
   opacity: 0.5;
 }
 
-._inline_wjbso_21 {
+._inline_96qzh_21 {
   position: absolute;
   top: 0;
   left: 0;

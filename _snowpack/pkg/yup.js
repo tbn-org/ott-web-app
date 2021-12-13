@@ -162,7 +162,7 @@ let object = {
 let array = {
   min: '${path} field must have at least ${min} items',
   max: '${path} field must have less than or equal to ${max} items',
-  length: '${path} must be have ${length} items'
+  length: '${path} must have ${length} items'
 };
 var locale = Object.assign(Object.create(null), {
   mixed,
@@ -1505,10 +1505,11 @@ function has(object, path) {
 
 var has_1 = has;
 
-var isSchema = (obj => obj && obj.__isYupSchema__);
+const isSchema = obj => obj && obj.__isYupSchema__;
 
 class Condition {
   constructor(refs, options) {
+    this.fn = void 0;
     this.refs = refs;
     this.refs = refs;
 
@@ -1569,6 +1570,12 @@ class ValidationError extends Error {
 
   constructor(errorOrErrors, value, field, type) {
     super();
+    this.value = void 0;
+    this.path = void 0;
+    this.type = void 0;
+    this.errors = void 0;
+    this.params = void 0;
+    this.inner = void 0;
     this.name = 'ValidationError';
     this.value = value;
     this.path = field;
@@ -3526,6 +3533,13 @@ function create(key, options) {
 }
 class Reference {
   constructor(key, options = {}) {
+    this.key = void 0;
+    this.isContext = void 0;
+    this.isValue = void 0;
+    this.isSibling = void 0;
+    this.path = void 0;
+    this.getter = void 0;
+    this.map = void 0;
     if (typeof key !== 'string') throw new TypeError('ref must be a string, got: ' + key);
     this.key = key.trim();
     if (key === '') throw new TypeError('ref must be a non-empty string');
@@ -3636,7 +3650,7 @@ function createValidation(config) {
       try {
         Promise.resolve(test.call(ctx, value, ctx)).then(validOrError => {
           if (ValidationError.isError(validOrError)) cb(validOrError);else if (!validOrError) cb(createError());else cb(null, validOrError);
-        });
+        }).catch(cb);
       } catch (err) {
         cb(err);
       }
@@ -3721,6 +3735,8 @@ const reach = (obj, path, value, context) => getIn(obj, path, value, context).sc
 
 class ReferenceSet {
   constructor() {
+    this.list = void 0;
+    this.refs = void 0;
     this.list = new Set();
     this.refs = new Map();
   }
@@ -3743,22 +3759,16 @@ class ReferenceSet {
     return Array.from(this.list).concat(Array.from(this.refs.values()));
   }
 
+  resolveAll(resolve) {
+    return this.toArray().reduce((acc, e) => acc.concat(Reference.isRef(e) ? resolve(e) : e), []);
+  }
+
   add(value) {
     Reference.isRef(value) ? this.refs.set(value.key, value) : this.list.add(value);
   }
 
   delete(value) {
     Reference.isRef(value) ? this.refs.delete(value.key) : this.list.delete(value);
-  }
-
-  has(value, resolve) {
-    if (this.list.has(value)) return true;
-    let item,
-        values = this.refs.values();
-
-    while (item = values.next(), !item.done) if (resolve(item.value) === value) return true;
-
-    return false;
   }
 
   clone() {
@@ -3780,13 +3790,19 @@ class ReferenceSet {
 }
 
 function _extends$2() { _extends$2 = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; }; return _extends$2.apply(this, arguments); }
+
 class BaseSchema {
   constructor(options) {
     this.deps = [];
+    this.tests = void 0;
+    this.transforms = void 0;
     this.conditions = [];
+    this._mutate = void 0;
+    this._typeError = void 0;
     this._whitelist = new ReferenceSet();
     this._blacklist = new ReferenceSet();
     this.exclusiveTests = Object.create(null);
+    this.spec = void 0;
     this.tests = [];
     this.transforms = [];
     this.withMutation(() => {
@@ -3839,7 +3855,7 @@ class BaseSchema {
   }
 
   label(label) {
-    var next = this.clone();
+    let next = this.clone();
     next.spec.label = label;
     return next;
   }
@@ -3896,6 +3912,7 @@ class BaseSchema {
         next.test(fn.OPTIONS);
       });
     });
+    combined.transforms = [...base.transforms, ...combined.transforms];
     return combined;
   }
 
@@ -3983,8 +4000,9 @@ class BaseSchema {
     };
     let initialTests = [];
     if (this._typeError) initialTests.push(this._typeError);
-    if (this._whitelistError) initialTests.push(this._whitelistError);
-    if (this._blacklistError) initialTests.push(this._blacklistError);
+    let finalTests = [];
+    if (this._whitelistError) finalTests.push(this._whitelistError);
+    if (this._blacklistError) finalTests.push(this._blacklistError);
     runTests({
       args,
       value,
@@ -3995,7 +4013,7 @@ class BaseSchema {
     }, err => {
       if (err) return void cb(err, value);
       runTests({
-        tests: this.tests,
+        tests: this.tests.concat(finalTests),
         args,
         path,
         sync,
@@ -4075,7 +4093,7 @@ class BaseSchema {
   }
 
   strict(isStrict = true) {
-    var next = this.clone();
+    let next = this.clone();
     next.spec.strict = isStrict;
     return next;
   }
@@ -4113,7 +4131,7 @@ class BaseSchema {
   }
 
   notRequired() {
-    var next = this.clone({
+    let next = this.clone({
       presence: 'optional'
     });
     next.tests = next.tests.filter(test => test.OPTIONS.name !== 'required');
@@ -4121,14 +4139,14 @@ class BaseSchema {
   }
 
   nullable(isNullable = true) {
-    var next = this.clone({
+    let next = this.clone({
       nullable: isNullable !== false
     });
     return next;
   }
 
   transform(fn) {
-    var next = this.clone();
+    let next = this.clone();
     next.transforms.push(fn);
     return next;
   }
@@ -4211,7 +4229,7 @@ class BaseSchema {
   }
 
   typeError(message) {
-    var next = this.clone();
+    let next = this.clone();
     next._typeError = createValidation({
       message,
       name: 'typeError',
@@ -4230,7 +4248,7 @@ class BaseSchema {
   }
 
   oneOf(enums, message = mixed.oneOf) {
-    var next = this.clone();
+    let next = this.clone();
     enums.forEach(val => {
       next._whitelist.add(val);
 
@@ -4243,9 +4261,11 @@ class BaseSchema {
       test(value) {
         if (value === undefined) return true;
         let valids = this.schema._whitelist;
-        return valids.has(value, this.resolve) ? true : this.createError({
+        let resolved = valids.resolveAll(this.resolve);
+        return resolved.includes(value) ? true : this.createError({
           params: {
-            values: valids.toArray().join(', ')
+            values: valids.toArray().join(', '),
+            resolved
           }
         });
       }
@@ -4255,7 +4275,7 @@ class BaseSchema {
   }
 
   notOneOf(enums, message = mixed.notOneOf) {
-    var next = this.clone();
+    let next = this.clone();
     enums.forEach(val => {
       next._blacklist.add(val);
 
@@ -4267,9 +4287,11 @@ class BaseSchema {
 
       test(value) {
         let invalids = this.schema._blacklist;
-        if (invalids.has(value, this.resolve)) return this.createError({
+        let resolved = invalids.resolveAll(this.resolve);
+        if (resolved.includes(value)) return this.createError({
           params: {
-            values: invalids.toArray().join(', ')
+            values: invalids.toArray().join(', '),
+            resolved
           }
         });
         return true;
@@ -4305,7 +4327,8 @@ class BaseSchema {
     return description;
   }
 
-}
+} // eslint-disable-next-line @typescript-eslint/no-unused-vars
+
 // @ts-expect-error
 BaseSchema.prototype.__isYupSchema__ = true;
 
@@ -4334,7 +4357,7 @@ function create$1() {
 
 create$1.prototype = Mixed.prototype;
 
-var isAbsent = (value => value == null);
+const isAbsent = value => value == null;
 
 function create$2() {
   return new BooleanSchema();
@@ -4687,7 +4710,7 @@ class NumberSchema extends BaseSchema {
   round(method) {
     var _method;
 
-    var avail = ['ceil', 'floor', 'round', 'trunc'];
+    let avail = ['ceil', 'floor', 'round', 'trunc'];
     method = ((_method = method) == null ? void 0 : _method.toLowerCase()) || 'round'; // this exists for symemtry with the new Math.trunc
 
     if (method === 'trunc') return this.truncate();
@@ -4799,7 +4822,7 @@ class DateSchema extends BaseSchema {
   }
 
   max(max, message = date.max) {
-    var limit = this.prepareParam(max, 'max');
+    let limit = this.prepareParam(max, 'max');
     return this.test({
       message,
       name: 'max',
@@ -5531,23 +5554,24 @@ function makeNodesHash(arr){
 }
 toposort_1.array = array$1;
 
-function sortFields(fields, excludes = []) {
+function sortFields(fields, excludedEdges = []) {
   let edges = [];
-  let nodes = [];
+  let nodes = new Set();
+  let excludes = new Set(excludedEdges.map(([a, b]) => `${a}-${b}`));
 
   function addNode(depPath, key) {
-    var node = propertyExpr.split(depPath)[0];
-    if (!~nodes.indexOf(node)) nodes.push(node);
-    if (!~excludes.indexOf(`${key}-${node}`)) edges.push([key, node]);
+    let node = propertyExpr.split(depPath)[0];
+    nodes.add(node);
+    if (!excludes.has(`${key}-${node}`)) edges.push([key, node]);
   }
 
   for (const key in fields) if (has_1(fields, key)) {
     let value = fields[key];
-    if (!~nodes.indexOf(key)) nodes.push(key);
+    nodes.add(key);
     if (Reference.isRef(value) && value.isSibling) addNode(value.path, key);else if (isSchema(value) && 'deps' in value) value.deps.forEach(path => addNode(path, key));
   }
 
-  return toposort_1.array(nodes, edges).reverse();
+  return toposort_1.array(Array.from(nodes), edges).reverse();
 }
 
 function findIndex(arr, err) {
@@ -5767,7 +5791,7 @@ class ObjectSchema extends BaseSchema {
       }
     }
 
-    return next.withMutation(() => next.shape(nextFields));
+    return next.withMutation(() => next.shape(nextFields, this._excludedEdges));
   }
 
   getDefaultFromShape() {
@@ -5801,9 +5825,9 @@ class ObjectSchema extends BaseSchema {
     next._sortErrors = sortByKeyOrder(Object.keys(fields));
 
     if (excludes.length) {
+      // this is a convenience for when users only supply a single pair
       if (!Array.isArray(excludes[0])) excludes = [excludes];
-      let keys = excludes.map(([first, second]) => `${first}-${second}`);
-      next._excludedEdges = next._excludedEdges.concat(keys);
+      next._excludedEdges = [...next._excludedEdges, ...excludes];
     }
 
     next._nodes = sortFields(fields, next._excludedEdges);
@@ -5920,6 +5944,7 @@ class ArraySchema extends BaseSchema {
     }); // `undefined` specifically means uninitialized, as opposed to
     // "no subtype"
 
+    this.innerType = void 0;
     this.innerType = type;
     this.withMutation(() => {
       this.transform(function (values) {
@@ -6134,6 +6159,8 @@ class Lazy {
   constructor(builder) {
     this.type = 'lazy';
     this.__isYupSchema__ = true;
+    this.__inputType = void 0;
+    this.__outputType = void 0;
 
     this._resolve = (value, options = {}) => {
       let schema = this.builder(value, options);
@@ -6185,7 +6212,9 @@ class Lazy {
 
 function setLocale(custom) {
   Object.keys(custom).forEach(type => {
+    // @ts-ignore
     Object.keys(custom[type]).forEach(method => {
+      // @ts-ignore
       locale[type][method] = custom[type][method];
     });
   });

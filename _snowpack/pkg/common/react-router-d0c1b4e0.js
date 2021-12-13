@@ -1,4 +1,4 @@
-import { _ as _inheritsLoose } from './inheritsLoose-a99a548f.js';
+import { _ as _inheritsLoose } from './inheritsLoose-978d85dc.js';
 import { r as react } from './index-04edb6a1.js';
 import { p as propTypes } from './index-ce016b4a.js';
 import { _ as _extends } from './extends-7477639a.js';
@@ -1701,29 +1701,15 @@ var createNamedContext = function createNamedContext(name) {
   return context;
 };
 
-var historyContext =
-/*#__PURE__*/
-createNamedContext("Router-History");
+var historyContext = /*#__PURE__*/createNamedContext("Router-History");
 
-// TODO: Replace with React.createContext once we can assume React 16+
-
-var createNamedContext$1 = function createNamedContext(name) {
-  var context = index();
-  context.displayName = name;
-  return context;
-};
-
-var context =
-/*#__PURE__*/
-createNamedContext$1("Router");
+var context = /*#__PURE__*/createNamedContext("Router");
 
 /**
  * The public API for putting history on context.
  */
 
-var Router =
-/*#__PURE__*/
-function (_React$Component) {
+var Router = /*#__PURE__*/function (_React$Component) {
   _inheritsLoose(Router, _React$Component);
 
   Router.computeRootMatch = function computeRootMatch(pathname) {
@@ -1778,18 +1764,22 @@ function (_React$Component) {
   };
 
   _proto.componentWillUnmount = function componentWillUnmount() {
-    if (this.unlisten) this.unlisten();
+    if (this.unlisten) {
+      this.unlisten();
+      this._isMounted = false;
+      this._pendingLocation = null;
+    }
   };
 
   _proto.render = function render() {
-    return react.createElement(context.Provider, {
+    return /*#__PURE__*/react.createElement(context.Provider, {
       value: {
         history: this.props.history,
         location: this.state.location,
         match: Router.computeRootMatch(this.state.location.pathname),
         staticContext: this.props.staticContext
       }
-    }, react.createElement(historyContext.Provider, {
+    }, /*#__PURE__*/react.createElement(historyContext.Provider, {
       children: this.props.children || null,
       value: this.props.history
     }));
@@ -1802,9 +1792,7 @@ function (_React$Component) {
  * The public API for a <Router> that stores location in memory.
  */
 
-var MemoryRouter =
-/*#__PURE__*/
-function (_React$Component) {
+var MemoryRouter = /*#__PURE__*/function (_React$Component) {
   _inheritsLoose(MemoryRouter, _React$Component);
 
   function MemoryRouter() {
@@ -1822,7 +1810,7 @@ function (_React$Component) {
   var _proto = MemoryRouter.prototype;
 
   _proto.render = function render() {
-    return react.createElement(Router, {
+    return /*#__PURE__*/react.createElement(Router, {
       history: this.history,
       children: this.props.children
     });
@@ -1831,9 +1819,7 @@ function (_React$Component) {
   return MemoryRouter;
 }(react.Component);
 
-var Lifecycle =
-/*#__PURE__*/
-function (_React$Component) {
+var Lifecycle = /*#__PURE__*/function (_React$Component) {
   _inheritsLoose(Lifecycle, _React$Component);
 
   function Lifecycle() {
@@ -1904,7 +1890,7 @@ function Redirect(_ref) {
       to = _ref.to,
       _ref$push = _ref.push,
       push = _ref$push === void 0 ? false : _ref$push;
-  return react.createElement(context.Consumer, null, function (context) {
+  return /*#__PURE__*/react.createElement(context.Consumer, null, function (context) {
     !context ?  invariant(false) : void 0;
     var history = context.history,
         staticContext = context.staticContext;
@@ -1919,7 +1905,7 @@ function Redirect(_ref) {
       return null;
     }
 
-    return react.createElement(Lifecycle, {
+    return /*#__PURE__*/react.createElement(Lifecycle, {
       onMount: function onMount() {
         method(location);
       },
@@ -2016,14 +2002,16 @@ function matchPath(pathname, options) {
     };
   }, null);
 }
+
+function isEmptyChildren(children) {
+  return react.Children.count(children) === 0;
+}
 /**
  * The public API for matching a single path and rendering.
  */
 
 
-var Route =
-/*#__PURE__*/
-function (_React$Component) {
+var Route = /*#__PURE__*/function (_React$Component) {
   _inheritsLoose(Route, _React$Component);
 
   function Route() {
@@ -2035,7 +2023,7 @@ function (_React$Component) {
   _proto.render = function render() {
     var _this = this;
 
-    return react.createElement(context.Consumer, null, function (context$1) {
+    return /*#__PURE__*/react.createElement(context.Consumer, null, function (context$1) {
       !context$1 ?  invariant(false) : void 0;
       var location = _this.props.location || context$1.location;
       var match = _this.props.computedMatch ? _this.props.computedMatch // <Switch> already computed the match for us
@@ -2052,13 +2040,13 @@ function (_React$Component) {
           render = _this$props.render; // Preact uses an empty array as children by
       // default, so use null if that's the case.
 
-      if (Array.isArray(children) && children.length === 0) {
+      if (Array.isArray(children) && isEmptyChildren(children)) {
         children = null;
       }
 
-      return react.createElement(context.Provider, {
+      return /*#__PURE__*/react.createElement(context.Provider, {
         value: props
-      }, props.match ? children ? typeof children === "function" ?  children(props) : children : component ? react.createElement(component, props) : render ? render(props) : null : typeof children === "function" ?  children(props) : null);
+      }, props.match ? children ? typeof children === "function" ?  children(props) : children : component ? /*#__PURE__*/react.createElement(component, props) : render ? render(props) : null : typeof children === "function" ?  children(props) : null);
     });
   };
 
@@ -2104,9 +2092,7 @@ function noop() {}
  */
 
 
-var StaticRouter =
-/*#__PURE__*/
-function (_React$Component) {
+var StaticRouter = /*#__PURE__*/function (_React$Component) {
   _inheritsLoose(StaticRouter, _React$Component);
 
   function StaticRouter() {
@@ -2174,7 +2160,7 @@ function (_React$Component) {
       listen: this.handleListen,
       block: this.handleBlock
     };
-    return react.createElement(Router, _extends({}, rest, {
+    return /*#__PURE__*/react.createElement(Router, _extends({}, rest, {
       history: history,
       staticContext: context
     }));
@@ -2187,9 +2173,7 @@ function (_React$Component) {
  * The public API for rendering the first <Route> that matches.
  */
 
-var Switch =
-/*#__PURE__*/
-function (_React$Component) {
+var Switch = /*#__PURE__*/function (_React$Component) {
   _inheritsLoose(Switch, _React$Component);
 
   function Switch() {
@@ -2201,7 +2185,7 @@ function (_React$Component) {
   _proto.render = function render() {
     var _this = this;
 
-    return react.createElement(context.Consumer, null, function (context) {
+    return /*#__PURE__*/react.createElement(context.Consumer, null, function (context) {
       !context ?  invariant(false) : void 0;
       var location = _this.props.location || context.location;
       var element, match; // We use React.Children.forEach instead of React.Children.toArray().find()
@@ -2210,7 +2194,7 @@ function (_React$Component) {
       // component at different URLs.
 
       react.Children.forEach(_this.props.children, function (child) {
-        if (match == null && react.isValidElement(child)) {
+        if (match == null && /*#__PURE__*/react.isValidElement(child)) {
           element = child;
           var path = child.props.path || child.props.from;
           match = path ? matchPath(location.pathname, _extends({}, child.props, {
@@ -2218,7 +2202,7 @@ function (_React$Component) {
           })) : context.match;
         }
       });
-      return match ? react.cloneElement(element, {
+      return match ? /*#__PURE__*/react.cloneElement(element, {
         location: location,
         computedMatch: match
       }) : null;
@@ -2238,4 +2222,4 @@ function useLocation() {
   return useContext(context).location;
 }
 
-export { Router as R, Switch as S, useHistory as a, createHashHistory as b, createBrowserHistory as c, context as d, createLocation as e, Route as f, Redirect as g, invariant as i, matchPath as m, useLocation as u };
+export { Router as R, Switch as S, useHistory as a, createHashHistory as b, createBrowserHistory as c, context as d, createLocation as e, createPath as f, Route as g, Redirect as h, invariant as i, matchPath as m, useLocation as u };

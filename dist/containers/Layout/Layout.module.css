@@ -1,14 +1,14 @@
-._layout_sfv6w_1 {
+._layout_vobt6_1 {
   display: flex;
   flex-direction: column;
-  min-height: calc(100vh - calc(100vh - 100%));
+  min-height: calc(100vh - (100vh - 100%));
 }
 
-._main_sfv6w_7 {
+._main_vobt6_7 {
   flex: 1;
 }
 
-._footer_sfv6w_11 {
+._footer_vobt6_11 {
   padding: 20px 40px;
   line-height: 18px;
   letter-spacing: 0.15px;
@@ -16,26 +16,26 @@
   text-shadow: 0 2px 4px rgba(0, 0, 0, 0.14), 0 3px 4px rgba(0, 0, 0, 0.12), 0 1px 5px rgba(0, 0, 0, 0.2);
 }
 
-._footer_sfv6w_11 > div > a,
-._footer_sfv6w_11 a:visited,
-._footer_sfv6w_11 a:active,
-._footer_sfv6w_11 a:hover {
+._footer_vobt6_11 > div > a,
+._footer_vobt6_11 a:visited,
+._footer_vobt6_11 a:active,
+._footer_vobt6_11 a:hover {
   color: #fff;
   text-decoration: none;
 }
 
-._divider_sfv6w_26 {
+._divider_vobt6_26 {
   width: 100%;
   border: none;
   border-top: 1px solid rgba(255, 255, 255, 0.12);
 }
 
-._buttonContainer_sfv6w_32 {
+._buttonContainer_vobt6_32 {
   display: flex;
   flex-direction: column;
   padding: 0 16px;
 }
 
-._buttonContainer_sfv6w_32 > button:first-child {
+._buttonContainer_vobt6_32 > button:first-child {
   margin-bottom: 8px;
 }
