@@ -8,7 +8,7 @@ export function getPublicUrl(url) {
   }
   const baseUrl = __SNOWPACK_ENV__.SNOWPACK_PUBLIC_BASE_URL || "";
   const trimSlashes = (s) => s.replace(/^\/+|\/+$/g, "");
-  return [baseUrl, url].map(trimSlashes).join("/");
+  return (baseUrl ? "/" : "") + [baseUrl, url].map(trimSlashes).join("/");
 }
 export default function scrollbarSize(recalc) {
   if (!size && size !== 0 || recalc) {
