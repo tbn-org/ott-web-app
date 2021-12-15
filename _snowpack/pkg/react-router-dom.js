@@ -251,4 +251,4 @@ var NavLink = forwardRef$1(function (_ref, forwardedRef) {
   });
 });
 
-export { BrowserRouter, Link, NavLink };
+export { BrowserRouter, HashRouter, Link, NavLink };

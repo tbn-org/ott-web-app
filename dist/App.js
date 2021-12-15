@@ -1,6 +1,6 @@
 import React, {Component} from "../_snowpack/pkg/react.js";
-import {BrowserRouter as Router} from "../_snowpack/pkg/react-router-dom.js";
 import {I18nextProvider, getI18n} from "../_snowpack/pkg/react-i18next.js";
+import Router from "./components/Router/Router.js";
 import Root from "./components/Root/Root.js";
 import ConfigProvider from "./providers/ConfigProvider.js";
 import QueryProvider from "./providers/QueryProvider.js";
