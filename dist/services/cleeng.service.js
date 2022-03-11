@@ -12,7 +12,9 @@ export const performRequest = async (sandbox, path = "/", method = "GET", body, 
     });
     return await resp.json();
   } catch (error) {
-    return error;
+    return {
+      errors: Array.of(error)
+    };
   }
 };
 export const get = (sandbox, path, jwt) => performRequest(sandbox, path, "GET", void 0, jwt);

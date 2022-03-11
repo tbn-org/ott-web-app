@@ -13,7 +13,7 @@ export const ConfigStore = new Store({
     menu: [],
     cleengSandbox: true,
     options: {
-      shelveTitles: true
+      shelfTitles: true
     }
   },
   accessModel: "SVOD"

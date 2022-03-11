@@ -77,28 +77,6 @@ function parseQueryArgs(arg1, arg2, arg3) {
     queryKey: arg1
   });
 }
-function parseMutationArgs(arg1, arg2, arg3) {
-  if (isQueryKey(arg1)) {
-    if (typeof arg2 === 'function') {
-      return _extends({}, arg3, {
-        mutationKey: arg1,
-        mutationFn: arg2
-      });
-    }
-
-    return _extends({}, arg2, {
-      mutationKey: arg1
-    });
-  }
-
-  if (typeof arg1 === 'function') {
-    return _extends({}, arg2, {
-      mutationFn: arg1
-    });
-  }
-
-  return _extends({}, arg1);
-}
 function parseFilterArgs(arg1, arg2, arg3) {
   return isQueryKey(arg1) ? [_extends({}, arg2, {
     queryKey: arg1
@@ -361,29 +339,60 @@ var FocusManager = /*#__PURE__*/function (_Subscribable) {
   _inheritsLoose(FocusManager, _Subscribable);
 
   function FocusManager() {
-    return _Subscribable.apply(this, arguments) || this;
+    var _this;
+
+    _this = _Subscribable.call(this) || this;
+
+    _this.setup = function (onFocus) {
+      var _window;
+
+      if (!isServer && ((_window = window) == null ? void 0 : _window.addEventListener)) {
+        var listener = function listener() {
+          return onFocus();
+        }; // Listen to visibillitychange and focus
+
+
+        window.addEventListener('visibilitychange', listener, false);
+        window.addEventListener('focus', listener, false);
+        return function () {
+          // Be sure to unsubscribe if a new handler is set
+          window.removeEventListener('visibilitychange', listener);
+          window.removeEventListener('focus', listener);
+        };
+      }
+    };
+
+    return _this;
   }
 
   var _proto = FocusManager.prototype;
 
   _proto.onSubscribe = function onSubscribe() {
-    if (!this.removeEventListener) {
-      this.setDefaultEventListener();
+    if (!this.cleanup) {
+      this.setEventListener(this.setup);
+    }
+  };
+
+  _proto.onUnsubscribe = function onUnsubscribe() {
+    if (!this.hasListeners()) {
+      var _this$cleanup;
+
+      (_this$cleanup = this.cleanup) == null ? void 0 : _this$cleanup.call(this);
+      this.cleanup = undefined;
     }
   };
 
   _proto.setEventListener = function setEventListener(setup) {
-    var _this = this;
+    var _this$cleanup2,
+        _this2 = this;
 
-    if (this.removeEventListener) {
-      this.removeEventListener();
-    }
-
-    this.removeEventListener = setup(function (focused) {
+    this.setup = setup;
+    (_this$cleanup2 = this.cleanup) == null ? void 0 : _this$cleanup2.call(this);
+    this.cleanup = setup(function (focused) {
       if (typeof focused === 'boolean') {
-        _this.setFocused(focused);
+        _this2.setFocused(focused);
       } else {
-        _this.onFocus();
+        _this2.onFocus();
       }
     });
   };
@@ -415,59 +424,68 @@ var FocusManager = /*#__PURE__*/function (_Subscribable) {
     return [undefined, 'visible', 'prerender'].includes(document.visibilityState);
   };
 
-  _proto.setDefaultEventListener = function setDefaultEventListener() {
-    var _window;
-
-    if (!isServer && ((_window = window) == null ? void 0 : _window.addEventListener)) {
-      this.setEventListener(function (onFocus) {
-        var listener = function listener() {
-          return onFocus();
-        }; // Listen to visibillitychange and focus
-
-
-        window.addEventListener('visibilitychange', listener, false);
-        window.addEventListener('focus', listener, false);
-        return function () {
-          // Be sure to unsubscribe if a new handler is set
-          window.removeEventListener('visibilitychange', listener);
-          window.removeEventListener('focus', listener);
-        };
-      });
-    }
-  };
-
   return FocusManager;
 }(Subscribable);
-
 var focusManager = new FocusManager();
 
 var OnlineManager = /*#__PURE__*/function (_Subscribable) {
   _inheritsLoose(OnlineManager, _Subscribable);
 
   function OnlineManager() {
-    return _Subscribable.apply(this, arguments) || this;
+    var _this;
+
+    _this = _Subscribable.call(this) || this;
+
+    _this.setup = function (onOnline) {
+      var _window;
+
+      if (!isServer && ((_window = window) == null ? void 0 : _window.addEventListener)) {
+        var listener = function listener() {
+          return onOnline();
+        }; // Listen to online
+
+
+        window.addEventListener('online', listener, false);
+        window.addEventListener('offline', listener, false);
+        return function () {
+          // Be sure to unsubscribe if a new handler is set
+          window.removeEventListener('online', listener);
+          window.removeEventListener('offline', listener);
+        };
+      }
+    };
+
+    return _this;
   }
 
   var _proto = OnlineManager.prototype;
 
   _proto.onSubscribe = function onSubscribe() {
-    if (!this.removeEventListener) {
-      this.setDefaultEventListener();
+    if (!this.cleanup) {
+      this.setEventListener(this.setup);
+    }
+  };
+
+  _proto.onUnsubscribe = function onUnsubscribe() {
+    if (!this.hasListeners()) {
+      var _this$cleanup;
+
+      (_this$cleanup = this.cleanup) == null ? void 0 : _this$cleanup.call(this);
+      this.cleanup = undefined;
     }
   };
 
   _proto.setEventListener = function setEventListener(setup) {
-    var _this = this;
+    var _this$cleanup2,
+        _this2 = this;
 
-    if (this.removeEventListener) {
-      this.removeEventListener();
-    }
-
-    this.removeEventListener = setup(function (online) {
+    this.setup = setup;
+    (_this$cleanup2 = this.cleanup) == null ? void 0 : _this$cleanup2.call(this);
+    this.cleanup = setup(function (online) {
       if (typeof online === 'boolean') {
-        _this.setOnline(online);
+        _this2.setOnline(online);
       } else {
-        _this.onOnline();
+        _this2.onOnline();
       }
     });
   };
@@ -498,30 +516,8 @@ var OnlineManager = /*#__PURE__*/function (_Subscribable) {
     return navigator.onLine;
   };
 
-  _proto.setDefaultEventListener = function setDefaultEventListener() {
-    var _window;
-
-    if (!isServer && ((_window = window) == null ? void 0 : _window.addEventListener)) {
-      this.setEventListener(function (onOnline) {
-        var listener = function listener() {
-          return onOnline();
-        }; // Listen to online
-
-
-        window.addEventListener('online', listener, false);
-        window.addEventListener('offline', listener, false);
-        return function () {
-          // Be sure to unsubscribe if a new handler is set
-          window.removeEventListener('online', listener);
-          window.removeEventListener('offline', listener);
-        };
-      });
-    }
-  };
-
   return OnlineManager;
 }(Subscribable);
-
 var onlineManager = new OnlineManager();
 
 function defaultRetryDelay(failureCount) {
@@ -696,12 +692,17 @@ var NotifyManager = /*#__PURE__*/function () {
   var _proto = NotifyManager.prototype;
 
   _proto.batch = function batch(callback) {
+    var result;
     this.transactions++;
-    var result = callback();
-    this.transactions--;
 
-    if (!this.transactions) {
-      this.flush();
+    try {
+      result = callback();
+    } finally {
+      this.transactions--;
+
+      if (!this.transactions) {
+        this.flush();
+      }
     }
 
     return result;
@@ -1228,8 +1229,10 @@ var Query = /*#__PURE__*/function () {
           fetchFailureCount: 0,
           fetchMeta: (_action$meta = action.meta) != null ? _action$meta : null,
           isFetching: true,
-          isPaused: false,
-          status: !state.dataUpdatedAt ? 'loading' : state.status
+          isPaused: false
+        }, !state.dataUpdatedAt && {
+          error: null,
+          status: 'loading'
         });
 
       case 'success':
@@ -2530,9 +2533,11 @@ var QueryObserver = /*#__PURE__*/function (_Subscribable) {
       isPreviousData = true;
     } // Select data if needed
     else if (options.select && typeof state.data !== 'undefined') {
+        var _this$previousSelect;
+
         // Memoize select result
-        if (prevResult && state.data === (prevResultState == null ? void 0 : prevResultState.data) && options.select === (prevResultOptions == null ? void 0 : prevResultOptions.select) && !this.previousSelectError) {
-          data = prevResult.data;
+        if (prevResult && state.data === (prevResultState == null ? void 0 : prevResultState.data) && options.select === ((_this$previousSelect = this.previousSelect) == null ? void 0 : _this$previousSelect.fn) && !this.previousSelectError) {
+          data = this.previousSelect.result;
         } else {
           try {
             data = options.select(state.data);
@@ -2541,6 +2546,10 @@ var QueryObserver = /*#__PURE__*/function (_Subscribable) {
               data = replaceEqualDeep(prevResult == null ? void 0 : prevResult.data, data);
             }
 
+            this.previousSelect = {
+              fn: options.select,
+              result: data
+            };
             this.previousSelectError = null;
           } catch (selectError) {
             getLogger().error(selectError);
@@ -2757,134 +2766,12 @@ function _shouldFetchOnWindowFocus(query, options) {
 }
 
 function shouldFetchOptionally(query, prevQuery, options, prevOptions) {
-  return options.enabled !== false && (query !== prevQuery || prevOptions.enabled === false) && (!options.suspense || query.state.status !== 'error' || prevOptions.enabled === false) && isStale(query, options);
+  return options.enabled !== false && (query !== prevQuery || prevOptions.enabled === false) && (!options.suspense || query.state.status !== 'error') && isStale(query, options);
 }
 
 function isStale(query, options) {
   return query.isStaleByTime(options.staleTime);
 }
-
-// CLASS
-var MutationObserver = /*#__PURE__*/function (_Subscribable) {
-  _inheritsLoose(MutationObserver, _Subscribable);
-
-  function MutationObserver(client, options) {
-    var _this;
-
-    _this = _Subscribable.call(this) || this;
-    _this.client = client;
-
-    _this.setOptions(options);
-
-    _this.bindMethods();
-
-    _this.updateResult();
-
-    return _this;
-  }
-
-  var _proto = MutationObserver.prototype;
-
-  _proto.bindMethods = function bindMethods() {
-    this.mutate = this.mutate.bind(this);
-    this.reset = this.reset.bind(this);
-  };
-
-  _proto.setOptions = function setOptions(options) {
-    this.options = this.client.defaultMutationOptions(options);
-  };
-
-  _proto.onUnsubscribe = function onUnsubscribe() {
-    if (!this.listeners.length) {
-      var _this$currentMutation;
-
-      (_this$currentMutation = this.currentMutation) == null ? void 0 : _this$currentMutation.removeObserver(this);
-    }
-  };
-
-  _proto.onMutationUpdate = function onMutationUpdate(action) {
-    this.updateResult(); // Determine which callbacks to trigger
-
-    var notifyOptions = {
-      listeners: true
-    };
-
-    if (action.type === 'success') {
-      notifyOptions.onSuccess = true;
-    } else if (action.type === 'error') {
-      notifyOptions.onError = true;
-    }
-
-    this.notify(notifyOptions);
-  };
-
-  _proto.getCurrentResult = function getCurrentResult() {
-    return this.currentResult;
-  };
-
-  _proto.reset = function reset() {
-    this.currentMutation = undefined;
-    this.updateResult();
-    this.notify({
-      listeners: true
-    });
-  };
-
-  _proto.mutate = function mutate(variables, options) {
-    this.mutateOptions = options;
-
-    if (this.currentMutation) {
-      this.currentMutation.removeObserver(this);
-    }
-
-    this.currentMutation = this.client.getMutationCache().build(this.client, _extends({}, this.options, {
-      variables: typeof variables !== 'undefined' ? variables : this.options.variables
-    }));
-    this.currentMutation.addObserver(this);
-    return this.currentMutation.execute();
-  };
-
-  _proto.updateResult = function updateResult() {
-    var state = this.currentMutation ? this.currentMutation.state : getDefaultState();
-
-    var result = _extends({}, state, {
-      isLoading: state.status === 'loading',
-      isSuccess: state.status === 'success',
-      isError: state.status === 'error',
-      isIdle: state.status === 'idle',
-      mutate: this.mutate,
-      reset: this.reset
-    });
-
-    this.currentResult = result;
-  };
-
-  _proto.notify = function notify(options) {
-    var _this2 = this;
-
-    notifyManager.batch(function () {
-      // First trigger the mutate callbacks
-      if (_this2.mutateOptions) {
-        if (options.onSuccess) {
-          _this2.mutateOptions.onSuccess == null ? void 0 : _this2.mutateOptions.onSuccess(_this2.currentResult.data, _this2.currentResult.variables, _this2.currentResult.context);
-          _this2.mutateOptions.onSettled == null ? void 0 : _this2.mutateOptions.onSettled(_this2.currentResult.data, null, _this2.currentResult.variables, _this2.currentResult.context);
-        } else if (options.onError) {
-          _this2.mutateOptions.onError == null ? void 0 : _this2.mutateOptions.onError(_this2.currentResult.error, _this2.currentResult.variables, _this2.currentResult.context);
-          _this2.mutateOptions.onSettled == null ? void 0 : _this2.mutateOptions.onSettled(undefined, _this2.currentResult.error, _this2.currentResult.variables, _this2.currentResult.context);
-        }
-      } // Then trigger the listeners
-
-
-      if (options.listeners) {
-        _this2.listeners.forEach(function (listener) {
-          listener(_this2.currentResult);
-        });
-      }
-    });
-  };
-
-  return MutationObserver;
-}(Subscribable);
 
 var unstable_batchedUpdates = reactDom.unstable_batchedUpdates;
 
@@ -2963,61 +2850,16 @@ var useQueryErrorResetBoundary = function useQueryErrorResetBoundary() {
   return react.useContext(QueryErrorResetBoundaryContext);
 }; // COMPONENT
 
-function shouldThrowError(suspense, _useErrorBoundary, error) {
+function shouldThrowError(suspense, _useErrorBoundary, params) {
   // Allow useErrorBoundary function to override throwing behavior on a per-error basis
   if (typeof _useErrorBoundary === 'function') {
-    return _useErrorBoundary(error);
+    return _useErrorBoundary.apply(void 0, params);
   } // Allow useErrorBoundary to override suspense's throwing behavior
 
 
   if (typeof _useErrorBoundary === 'boolean') return _useErrorBoundary; // If suspense is enabled default to throwing errors
 
   return !!suspense;
-}
-
-function useMutation(arg1, arg2, arg3) {
-  var mountedRef = react.useRef(false);
-
-  var _React$useState = react.useState(0),
-      forceUpdate = _React$useState[1];
-
-  var options = parseMutationArgs(arg1, arg2, arg3);
-  var queryClient = useQueryClient();
-  var obsRef = react.useRef();
-
-  if (!obsRef.current) {
-    obsRef.current = new MutationObserver(queryClient, options);
-  } else {
-    obsRef.current.setOptions(options);
-  }
-
-  var currentResult = obsRef.current.getCurrentResult();
-  react.useEffect(function () {
-    mountedRef.current = true;
-    var unsubscribe = obsRef.current.subscribe(notifyManager.batchCalls(function () {
-      if (mountedRef.current) {
-        forceUpdate(function (x) {
-          return x + 1;
-        });
-      }
-    }));
-    return function () {
-      mountedRef.current = false;
-      unsubscribe();
-    };
-  }, []);
-  var mutate = react.useCallback(function (variables, mutateOptions) {
-    obsRef.current.mutate(variables, mutateOptions).catch(noop);
-  }, []);
-
-  if (currentResult.error && shouldThrowError(undefined, obsRef.current.options.useErrorBoundary, currentResult.error)) {
-    throw currentResult.error;
-  }
-
-  return _extends({}, currentResult, {
-    mutate: mutate,
-    mutateAsync: currentResult.mutate
-  });
 }
 
 function useBaseQuery(options, Observer) {
@@ -3110,7 +2952,7 @@ function useBaseQuery(options, Observer) {
   } // Handle error boundary
 
 
-  if (result.isError && !errorResetBoundary.isReset() && !result.isFetching && shouldThrowError(defaultedOptions.suspense, defaultedOptions.useErrorBoundary, result.error)) {
+  if (result.isError && !errorResetBoundary.isReset() && !result.isFetching && shouldThrowError(defaultedOptions.suspense, defaultedOptions.useErrorBoundary, [result.error, observer.getCurrentQuery()])) {
     throw result.error;
   } // Handle result property usage tracking
 
@@ -3127,4 +2969,4 @@ function useQuery(arg1, arg2, arg3) {
   return useBaseQuery(parsedOptions, QueryObserver);
 }
 
-export { QueryClient, QueryClientProvider, useMutation, useQuery };
+export { QueryClient, QueryClientProvider, useQuery };

@@ -42,7 +42,7 @@ class App extends Component {
     return /* @__PURE__ */ React.createElement(I18nextProvider, {
       i18n: getI18n()
     }, /* @__PURE__ */ React.createElement(QueryProvider, null, /* @__PURE__ */ React.createElement(ConfigProvider, {
-      configLocation: window.configLocation || "./config.json",
+      configLocation: window.configLocation || "/config.json",
       onLoading: this.configLoadingHandler,
       onValidationError: this.configErrorHandler,
       onValidationCompleted: this.configValidationCompletedHandler

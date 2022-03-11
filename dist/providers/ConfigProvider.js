@@ -18,7 +18,7 @@ const defaultConfig = {
   cleengSandbox: true,
   options: {
     enableSharing: true,
-    shelveTitles: true
+    shelfTitles: true
   }
 };
 export const ConfigContext = createContext(defaultConfig);

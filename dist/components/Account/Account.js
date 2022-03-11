@@ -1,4 +1,4 @@
-import React, {useState, useEffect, useMemo} from "../../../_snowpack/pkg/react.js";
+import React, {useState, useMemo} from "../../../_snowpack/pkg/react.js";
 import {useTranslation} from "../../../_snowpack/pkg/react-i18next.js";
 import {useHistory} from "../../../_snowpack/pkg/react-router-dom.js";
 import {formatConsentsFromValues, formatConsentValues} from "../../utils/collection.js";
@@ -6,32 +6,22 @@ import Visibility from "../../icons/Visibility.js";
 import VisibilityOff from "../../icons/VisibilityOff.js";
 import useToggle from "../../hooks/useToggle.js";
 import Button from "../Button/Button.js";
-import Spinner from "../Spinner/Spinner.js";
 import Form from "../Form/Form.js";
 import IconButton from "../IconButton/IconButton.js";
 import LoadingOverlay from "../LoadingOverlay/LoadingOverlay.js";
 import TextField from "../TextField/TextField.js";
 import Checkbox from "../Checkbox/Checkbox.js";
 import {addQueryParam} from "../../utils/history.js";
+import {AccountStore, updateConsents, updateUser} from "../../stores/AccountStore.js";
 import styles from "./Account.module.css.proxy.js";
-const Account = ({
-  customer,
-  errors,
-  isLoading,
-  consentsLoading,
-  publisherConsents,
-  customerConsents,
-  panelClassName,
-  panelHeaderClassName,
-  onUpdateEmailSubmit,
-  onUpdateInfoSubmit,
-  onUpdateConsentsSubmit,
-  onReset
-}) => {
+const Account = ({panelClassName, panelHeaderClassName}) => {
   const {t} = useTranslation("user");
   const history = useHistory();
   const [editing, setEditing] = useState("none");
+  const [errors, setErrors] = useState();
+  const [isLoading, setIsLoading] = useState(false);
   const [viewPassword, toggleViewPassword] = useToggle();
+  const {user: customer, customerConsents, publisherConsents} = AccountStore.useState((state) => state);
   const consentValues = useMemo(() => formatConsentValues(publisherConsents, customerConsents), [publisherConsents, customerConsents]);
   const initialValues = useMemo(() => ({...customer, consents: consentValues}), [customer, consentValues]);
   const formatConsentLabel = (label) => {
@@ -44,29 +34,68 @@ const Account = ({
     }
     return label;
   };
-  const handleSubmit = (values) => {
+  const translateErrors = (errors2) => {
+    const formErrors = {};
+    errors2?.flatMap((e) => e.split(",")).map((error) => {
+      switch (error.trim()) {
+        case "Invalid param email":
+          formErrors.email = t("account.errors.invalid_param_email");
+          break;
+        case "Customer email already exists":
+          formErrors.email = t("account.errors.email_exists");
+          break;
+        case "Please enter a valid e-mail address.":
+          formErrors.email = t("account.errors.please_enter_valid_email");
+          break;
+        case "Invalid confirmationPassword": {
+          formErrors.confirmationPassword = t("account.errors.invalid_password");
+          break;
+        }
+        case "firstName can have max 50 characters.": {
+          formErrors.firstName = t("account.errors.first_name_too_long");
+          break;
+        }
+        case "lastName can have max 50 characters.": {
+          formErrors.lastName = t("account.errors.last_name_too_long");
+          break;
+        }
+        default:
+          console.info("Unknown error", error);
+          return;
+      }
+    });
+    return formErrors;
+  };
+  async function handleSubmit(values) {
+    let response = void 0;
+    setIsLoading(true);
     switch (editing) {
       case "account":
-        return onUpdateEmailSubmit(values);
+        response = await updateUser({email: values.email, confirmationPassword: values.confirmationPassword});
+        break;
       case "info":
-        return onUpdateInfoSubmit(values);
+        response = await updateUser({firstName: values.firstName, lastName: values.lastName});
+        break;
       case "consents":
-        return onUpdateConsentsSubmit(formatConsentsFromValues(publisherConsents, values));
+        response = await updateConsents(formatConsentsFromValues(publisherConsents, values));
+        break;
       default:
         return;
     }
-  };
+    setErrors(translateErrors(response?.errors));
+    if (response && !response?.errors?.length) {
+      setEditing("none");
+    }
+    setIsLoading(false);
+  }
   const onCancelClick = (formResetHandler) => {
     formResetHandler && formResetHandler();
+    setErrors(void 0);
     setEditing("none");
-    onReset && onReset();
   };
   const editPasswordClickHandler = () => {
     history.push(addQueryParam(history, "u", "reset-password"));
   };
-  useEffect(() => {
-    !isLoading && setEditing("none");
-  }, [isLoading]);
   return /* @__PURE__ */ React.createElement(Form, {
     initialValues,
     onSubmit: handleSubmit
@@ -166,13 +195,11 @@ const Account = ({
     type: "button",
     label: t("account.edit_information"),
     onClick: () => setEditing("info")
-  }))))), /* @__PURE__ */ React.createElement("div", {
+  }))))), publisherConsents && /* @__PURE__ */ React.createElement("div", {
     className: panelClassName
   }, /* @__PURE__ */ React.createElement("div", {
     className: panelHeaderClassName
-  }, /* @__PURE__ */ React.createElement("h3", null, t("account.terms_and_tracking"))), consentsLoading ? /* @__PURE__ */ React.createElement(Spinner, {
-    size: "small"
-  }) : publisherConsents ? /* @__PURE__ */ React.createElement("div", {
+  }, /* @__PURE__ */ React.createElement("h3", null, t("account.terms_and_tracking"))), /* @__PURE__ */ React.createElement("div", {
     className: styles.flexBox,
     onClick: () => setEditing("consents")
   }, publisherConsents.map((consent, index) => /* @__PURE__ */ React.createElement(Checkbox, {
@@ -192,6 +219,6 @@ const Account = ({
     label: t("account.update_consents"),
     disabled: !hasChanged,
     onClick: handleSubmit2
-  }))) : null)));
+  }))))));
 };
 export default Account;

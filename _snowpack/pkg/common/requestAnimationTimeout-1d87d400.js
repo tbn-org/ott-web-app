@@ -1,6 +1,6 @@
 import { c as createCommonjsModule } from './_commonjsHelpers-8c19dec8.js';
-import { a as _typeof_1 } from './typeof-cbc37410.js';
-import { p as propTypes } from './index-ce016b4a.js';
+import { e as _typeof_1 } from './inherits-1bb30523.js';
+import { p as propTypes } from './index-8ab56611.js';
 
 var interopRequireDefault = createCommonjsModule(function (module) {
 function _interopRequireDefault(obj) {
@@ -9,8 +9,7 @@ function _interopRequireDefault(obj) {
   };
 }
 
-module.exports = _interopRequireDefault;
-module.exports["default"] = module.exports, module.exports.__esModule = true;
+module.exports = _interopRequireDefault, module.exports.__esModule = true, module.exports["default"] = module.exports;
 });
 
 var interopRequireWildcard = createCommonjsModule(function (module) {
@@ -66,8 +65,7 @@ function _interopRequireWildcard(obj, nodeInterop) {
   return newObj;
 }
 
-module.exports = _interopRequireWildcard;
-module.exports["default"] = module.exports, module.exports.__esModule = true;
+module.exports = _interopRequireWildcard, module.exports.__esModule = true, module.exports["default"] = module.exports;
 });
 
 var animationFrame = createCommonjsModule(function (module, exports) {

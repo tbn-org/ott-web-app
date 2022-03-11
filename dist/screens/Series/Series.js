@@ -216,7 +216,7 @@ const Series = ({match, location}) => {
     isLoading,
     currentCardItem: item,
     currentCardLabel: t("current_episode"),
-    enableCardTitles: options.shelveTitles,
+    enableCardTitles: options.shelfTitles,
     accessModel,
     isLoggedIn: !!user,
     hasSubscription: !!subscription

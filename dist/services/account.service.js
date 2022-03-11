@@ -5,10 +5,10 @@ export const login = async (payload, sandbox) => {
 export const register = async (payload, sandbox) => {
   return post(sandbox, "/customers", JSON.stringify(payload));
 };
-export const getPublisherConsents = async (payload, sandbox) => {
+export const fetchPublisherConsents = async (payload, sandbox) => {
   return get(sandbox, `/publishers/${payload.publisherId}/consents`);
 };
-export const getCustomerConsents = async (payload, sandbox, jwt) => {
+export const fetchCustomerConsents = async (payload, sandbox, jwt) => {
   return get(sandbox, `/customers/${payload.customerId}/consents`, jwt);
 };
 export const resetPassword = async (payload, sandbox) => {

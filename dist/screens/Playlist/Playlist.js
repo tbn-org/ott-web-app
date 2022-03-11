@@ -60,7 +60,7 @@ function Playlist({
     onCardClick,
     onCardHover,
     isLoading,
-    enableCardTitles: config.options.shelveTitles,
+    enableCardTitles: config.options.shelfTitles,
     accessModel,
     isLoggedIn: !!user,
     hasSubscription: !!subscription

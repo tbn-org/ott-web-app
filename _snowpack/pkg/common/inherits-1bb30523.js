@@ -1,5 +1,18 @@
 import { c as createCommonjsModule, g as getDefaultExportFromCjs } from './_commonjsHelpers-8c19dec8.js';
-import { a as _typeof_1 } from './typeof-cbc37410.js';
+
+var _typeof_1 = createCommonjsModule(function (module) {
+function _typeof(obj) {
+  "@babel/helpers - typeof";
+
+  return (module.exports = _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (obj) {
+    return typeof obj;
+  } : function (obj) {
+    return obj && "function" == typeof Symbol && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj;
+  }, module.exports.__esModule = true, module.exports["default"] = module.exports), _typeof(obj);
+}
+
+module.exports = _typeof, module.exports.__esModule = true, module.exports["default"] = module.exports;
+});
 
 var assertThisInitialized = createCommonjsModule(function (module) {
 function _assertThisInitialized(self) {
@@ -10,8 +23,7 @@ function _assertThisInitialized(self) {
   return self;
 }
 
-module.exports = _assertThisInitialized;
-module.exports["default"] = module.exports, module.exports.__esModule = true;
+module.exports = _assertThisInitialized, module.exports.__esModule = true, module.exports["default"] = module.exports;
 });
 
 var _assertThisInitialized = /*@__PURE__*/getDefaultExportFromCjs(assertThisInitialized);
@@ -31,8 +43,7 @@ function _possibleConstructorReturn(self, call) {
   return assertThisInitialized(self);
 }
 
-module.exports = _possibleConstructorReturn;
-module.exports["default"] = module.exports, module.exports.__esModule = true;
+module.exports = _possibleConstructorReturn, module.exports.__esModule = true, module.exports["default"] = module.exports;
 });
 
 var _possibleConstructorReturn = /*@__PURE__*/getDefaultExportFromCjs(possibleConstructorReturn);
@@ -41,13 +52,11 @@ var getPrototypeOf = createCommonjsModule(function (module) {
 function _getPrototypeOf(o) {
   module.exports = _getPrototypeOf = Object.setPrototypeOf ? Object.getPrototypeOf : function _getPrototypeOf(o) {
     return o.__proto__ || Object.getPrototypeOf(o);
-  };
-  module.exports["default"] = module.exports, module.exports.__esModule = true;
+  }, module.exports.__esModule = true, module.exports["default"] = module.exports;
   return _getPrototypeOf(o);
 }
 
-module.exports = _getPrototypeOf;
-module.exports["default"] = module.exports, module.exports.__esModule = true;
+module.exports = _getPrototypeOf, module.exports.__esModule = true, module.exports["default"] = module.exports;
 });
 
 var _getPrototypeOf = /*@__PURE__*/getDefaultExportFromCjs(getPrototypeOf);
@@ -57,14 +66,11 @@ function _setPrototypeOf(o, p) {
   module.exports = _setPrototypeOf = Object.setPrototypeOf || function _setPrototypeOf(o, p) {
     o.__proto__ = p;
     return o;
-  };
-
-  module.exports["default"] = module.exports, module.exports.__esModule = true;
+  }, module.exports.__esModule = true, module.exports["default"] = module.exports;
   return _setPrototypeOf(o, p);
 }
 
-module.exports = _setPrototypeOf;
-module.exports["default"] = module.exports, module.exports.__esModule = true;
+module.exports = _setPrototypeOf, module.exports.__esModule = true, module.exports["default"] = module.exports;
 });
 
 var inherits = createCommonjsModule(function (module) {
@@ -80,13 +86,15 @@ function _inherits(subClass, superClass) {
       configurable: true
     }
   });
+  Object.defineProperty(subClass, "prototype", {
+    writable: false
+  });
   if (superClass) setPrototypeOf(subClass, superClass);
 }
 
-module.exports = _inherits;
-module.exports["default"] = module.exports, module.exports.__esModule = true;
+module.exports = _inherits, module.exports.__esModule = true, module.exports["default"] = module.exports;
 });
 
 var _inherits = /*@__PURE__*/getDefaultExportFromCjs(inherits);
 
-export { _inherits as _, _possibleConstructorReturn as a, _getPrototypeOf as b, _assertThisInitialized as c, assertThisInitialized as d, getPrototypeOf as g, inherits as i, possibleConstructorReturn as p };
+export { _inherits as _, _possibleConstructorReturn as a, _getPrototypeOf as b, _assertThisInitialized as c, assertThisInitialized as d, _typeof_1 as e, getPrototypeOf as g, inherits as i, possibleConstructorReturn as p };

@@ -4296,6 +4296,7 @@ function _createClass(Constructor, protoProps, staticProps) {
     _defineProperties(Constructor.prototype, protoProps);
   if (staticProps)
     _defineProperties(Constructor, staticProps);
+  Object.defineProperty(Constructor, "prototype", {writable: false});
   return Constructor;
 }
 function _defineProperty(obj, key, value) {
@@ -4358,6 +4359,10 @@ var SetLike = /* @__PURE__ */ function() {
 }();
 var SetLike$1 = typeof Set === "undefined" ? Set : SetLike;
 
+function getLocalName(element) {
+  var _element$localName;
+  return (_element$localName = element.localName) !== null && _element$localName !== void 0 ? _element$localName : element.tagName.toLowerCase();
+}
 var localNameToRoleMappings = {
   article: "article",
   aside: "complementary",
@@ -4497,6 +4502,8 @@ function getImplicitRole(element) {
             return "combobox";
           }
           return "searchbox";
+        case "number":
+          return "spinbutton";
         default:
           return null;
       }
@@ -4520,10 +4527,6 @@ function getExplicitRole(element) {
   return null;
 }
 
-function getLocalName(element) {
-  var _element$localName;
-  return (_element$localName = element.localName) !== null && _element$localName !== void 0 ? _element$localName : element.tagName.toLowerCase();
-}
 function isElement$1(node) {
   return node !== null && node.nodeType === node.ELEMENT_NODE;
 }
@@ -4733,7 +4736,7 @@ function computeTextAlternative(root) {
       var afterContent = getTextualContent(pseudoAfter);
       accumulatedText = "".concat(accumulatedText, " ").concat(afterContent);
     }
-    return accumulatedText;
+    return accumulatedText.trim();
   }
   function computeElementTextAlternative(node) {
     if (!isElement$1(node)) {
@@ -4829,6 +4832,16 @@ function computeTextAlternative(root) {
         return nameFromTitle;
       }
       return "Submit Query";
+    }
+    if (hasAnyConcreteRoles(node, ["button"])) {
+      var nameFromSubTree = computeMiscTextAlternative(node, {
+        isEmbeddedInLabel: false,
+        isReferenced: false
+      });
+      if (nameFromSubTree !== "") {
+        return nameFromSubTree;
+      }
+      return useAttribute(node, "title");
     }
     return useAttribute(node, "title");
   }
@@ -4945,8 +4958,7 @@ function _interopRequireDefault(obj) {
   };
 }
 
-module.exports = _interopRequireDefault;
-module.exports["default"] = module.exports, module.exports.__esModule = true;
+module.exports = _interopRequireDefault, module.exports.__esModule = true, module.exports["default"] = module.exports;
 });
 
 var check = function (it) {
@@ -4964,23 +4976,36 @@ var global_1 =
   // eslint-disable-next-line no-new-func -- fallback
   (function () { return this; })() || Function('return this')();
 
+var fails = function (exec) {
+  try {
+    return !!exec();
+  } catch (error) {
+    return true;
+  }
+};
+
+var functionBindNative = !fails(function () {
+  var test = (function () { /* empty */ }).bind();
+  // eslint-disable-next-line no-prototype-builtins -- safe
+  return typeof test != 'function' || test.hasOwnProperty('prototype');
+});
+
 var FunctionPrototype = Function.prototype;
 var apply = FunctionPrototype.apply;
-var bind = FunctionPrototype.bind;
 var call = FunctionPrototype.call;
 
 // eslint-disable-next-line es/no-reflect -- safe
-var functionApply = typeof Reflect == 'object' && Reflect.apply || (bind ? call.bind(apply) : function () {
+var functionApply = typeof Reflect == 'object' && Reflect.apply || (functionBindNative ? call.bind(apply) : function () {
   return call.apply(apply, arguments);
 });
 
 var FunctionPrototype$1 = Function.prototype;
-var bind$1 = FunctionPrototype$1.bind;
+var bind = FunctionPrototype$1.bind;
 var call$1 = FunctionPrototype$1.call;
-var callBind = bind$1 && bind$1.bind(call$1);
+var uncurryThis = functionBindNative && bind.bind(call$1, call$1);
 
-var functionUncurryThis = bind$1 ? function (fn) {
-  return fn && callBind(call$1, fn);
+var functionUncurryThis = functionBindNative ? function (fn) {
+  return fn && uncurryThis(fn);
 } : function (fn) {
   return fn && function () {
     return call$1.apply(fn, arguments);
@@ -4993,14 +5018,6 @@ var isCallable$1 = function (argument) {
   return typeof argument == 'function';
 };
 
-var fails = function (exec) {
-  try {
-    return !!exec();
-  } catch (error) {
-    return true;
-  }
-};
-
 // Detect IE8's incomplete defineProperty implementation
 var descriptors = !fails(function () {
   // eslint-disable-next-line es/no-object-defineproperty -- required for testing
@@ -5009,7 +5026,7 @@ var descriptors = !fails(function () {
 
 var call$2 = Function.prototype.call;
 
-var functionCall = call$2.bind ? call$2.bind(call$2) : function () {
+var functionCall = functionBindNative ? call$2.bind(call$2) : function () {
   return call$2.apply(call$2, arguments);
 };
 
@@ -5207,9 +5224,11 @@ var shared = createCommonjsModule(function (module) {
 (module.exports = function (key, value) {
   return sharedStore[key] || (sharedStore[key] = value !== undefined ? value : {});
 })('versions', []).push({
-  version: '3.19.3',
+  version: '3.21.1',
   mode:  'pure' ,
-  copyright: '© 2021 Denis Pushkarev (zloirock.ru)'
+  copyright: '© 2014-2022 Denis Pushkarev (zloirock.ru)',
+  license: 'https://github.com/zloirock/core-js/blob/v3.21.1/LICENSE',
+  source: 'https://github.com/zloirock/core-js'
 });
 });
 
@@ -5289,9 +5308,9 @@ var documentCreateElement = function (it) {
   return EXISTS ? document$1.createElement(it) : {};
 };
 
-// Thank's IE8 for his funny defineProperty
+// Thanks to IE8 for its funny defineProperty
 var ie8DomDefine = !descriptors && !fails(function () {
-  // eslint-disable-next-line es/no-object-defineproperty -- requied for testing
+  // eslint-disable-next-line es/no-object-defineproperty -- required for testing
   return Object.defineProperty(documentCreateElement('div'), 'a', {
     get: function () { return 7; }
   }).a != 7;
@@ -5335,15 +5354,25 @@ var POLYFILL = isForced.POLYFILL = 'P';
 
 var isForced_1 = isForced;
 
-var bind$2 = functionUncurryThis(functionUncurryThis.bind);
+var bind$1 = functionUncurryThis(functionUncurryThis.bind);
 
 // optional / simple context binding
 var functionBindContext = function (fn, that) {
   aCallable(fn);
-  return that === undefined ? fn : bind$2 ? bind$2(fn, that) : function (/* ...args */) {
+  return that === undefined ? fn : functionBindNative ? bind$1(fn, that) : function (/* ...args */) {
     return fn.apply(that, arguments);
   };
 };
+
+// V8 ~ Chrome 36-
+// https://bugs.chromium.org/p/v8/issues/detail?id=3334
+var v8PrototypeDefineBug = descriptors && fails(function () {
+  // eslint-disable-next-line es/no-object-defineproperty -- required for testing
+  return Object.defineProperty(function () { /* empty */ }, 'prototype', {
+    value: 42,
+    writable: false
+  }).prototype != 42;
+});
 
 var String$2 = global_1.String;
 var TypeError$5 = global_1.TypeError;
@@ -5357,10 +5386,30 @@ var anObject = function (argument) {
 var TypeError$6 = global_1.TypeError;
 // eslint-disable-next-line es/no-object-defineproperty -- safe
 var $defineProperty = Object.defineProperty;
+// eslint-disable-next-line es/no-object-getownpropertydescriptor -- safe
+var $getOwnPropertyDescriptor$1 = Object.getOwnPropertyDescriptor;
+var ENUMERABLE = 'enumerable';
+var CONFIGURABLE = 'configurable';
+var WRITABLE = 'writable';
 
 // `Object.defineProperty` method
 // https://tc39.es/ecma262/#sec-object.defineproperty
-var f$3 = descriptors ? $defineProperty : function defineProperty(O, P, Attributes) {
+var f$3 = descriptors ? v8PrototypeDefineBug ? function defineProperty(O, P, Attributes) {
+  anObject(O);
+  P = toPropertyKey(P);
+  anObject(Attributes);
+  if (typeof O === 'function' && P === 'prototype' && 'value' in Attributes && WRITABLE in Attributes && !Attributes[WRITABLE]) {
+    var current = $getOwnPropertyDescriptor$1(O, P);
+    if (current && current[WRITABLE]) {
+      O[P] = Attributes.value;
+      Attributes = {
+        configurable: CONFIGURABLE in Attributes ? Attributes[CONFIGURABLE] : current[CONFIGURABLE],
+        enumerable: ENUMERABLE in Attributes ? Attributes[ENUMERABLE] : current[ENUMERABLE],
+        writable: false
+      };
+    }
+  } return $defineProperty(O, P, Attributes);
+} : $defineProperty : function defineProperty(O, P, Attributes) {
   anObject(O);
   P = toPropertyKey(P);
   anObject(Attributes);
@@ -5481,10 +5530,13 @@ var _export = function (options, source) {
   }
 };
 
+var defineProperty$1 = objectDefineProperty.f;
+
 // `Object.defineProperty` method
 // https://tc39.es/ecma262/#sec-object.defineproperty
-_export({ target: 'Object', stat: true, forced: !descriptors, sham: !descriptors }, {
-  defineProperty: objectDefineProperty.f
+// eslint-disable-next-line es/no-object-defineproperty -- safe
+_export({ target: 'Object', stat: true, forced: Object.defineProperty !== defineProperty$1, sham: !descriptors }, {
+  defineProperty: defineProperty$1
 });
 
 var defineProperty_1 = createCommonjsModule(function (module) {
@@ -5497,9 +5549,9 @@ var defineProperty = module.exports = function defineProperty(it, key, desc) {
 if (Object.defineProperty.sham) defineProperty.sham = true;
 });
 
-var defineProperty$1 = defineProperty_1;
+var defineProperty$2 = defineProperty_1;
 
-var defineProperty$2 = defineProperty$1;
+var defineProperty$3 = defineProperty$2;
 
 var iterators = {};
 
@@ -5593,12 +5645,12 @@ var getDescriptor = descriptors && Object.getOwnPropertyDescriptor;
 var EXISTS$1 = hasOwnProperty_1(FunctionPrototype$2, 'name');
 // additional protection from minified / mangled / dropped function names
 var PROPER = EXISTS$1 && (function something() { /* empty */ }).name === 'something';
-var CONFIGURABLE = EXISTS$1 && (!descriptors || (descriptors && getDescriptor(FunctionPrototype$2, 'name').configurable));
+var CONFIGURABLE$1 = EXISTS$1 && (!descriptors || (descriptors && getDescriptor(FunctionPrototype$2, 'name').configurable));
 
 var functionName = {
   EXISTS: EXISTS$1,
   PROPER: PROPER,
-  CONFIGURABLE: CONFIGURABLE
+  CONFIGURABLE: CONFIGURABLE$1
 };
 
 var ceil = Math.ceil;
@@ -5705,7 +5757,7 @@ var objectKeys = Object.keys || function keys(O) {
 // `Object.defineProperties` method
 // https://tc39.es/ecma262/#sec-object.defineproperties
 // eslint-disable-next-line es/no-object-defineproperties -- safe
-var objectDefineProperties = descriptors ? Object.defineProperties : function defineProperties(O, Properties) {
+var f$4 = descriptors && !v8PrototypeDefineBug ? Object.defineProperties : function defineProperties(O, Properties) {
   anObject(O);
   var props = toIndexedObject(Properties);
   var keys = objectKeys(Properties);
@@ -5714,6 +5766,10 @@ var objectDefineProperties = descriptors ? Object.defineProperties : function de
   var key;
   while (length > index) objectDefineProperty.f(O, key = keys[index++], props[key]);
   return O;
+};
+
+var objectDefineProperties = {
+	f: f$4
 };
 
 var html = getBuiltIn('document', 'documentElement');
@@ -5798,7 +5854,7 @@ var objectCreate = Object.create || function create(O, Properties) {
     // add "__proto__" for Object.getPrototypeOf polyfill
     result[IE_PROTO] = O;
   } else result = NullProtoObject();
-  return Properties === undefined ? result : objectDefineProperties(result, Properties);
+  return Properties === undefined ? result : objectDefineProperties.f(result, Properties);
 };
 
 var correctPrototypeGetter = !fails(function () {
@@ -5906,7 +5962,7 @@ var objectToString = toStringTagSupport ? {}.toString : function toString() {
   return '[object ' + classof(this) + ']';
 };
 
-var defineProperty$3 = objectDefineProperty.f;
+var defineProperty$4 = objectDefineProperty.f;
 
 
 
@@ -5918,7 +5974,7 @@ var setToStringTag = function (it, TAG, STATIC, SET_METHOD) {
   if (it) {
     var target = STATIC ? it : it.prototype;
     if (!hasOwnProperty_1(target, TO_STRING_TAG$2)) {
-      defineProperty$3(target, TO_STRING_TAG$2, { configurable: true, value: TAG });
+      defineProperty$4(target, TO_STRING_TAG$2, { configurable: true, value: TAG });
     }
     if (SET_METHOD && !toStringTagSupport) {
       createNonEnumerableProperty(target, 'toString', objectToString);
@@ -6091,19 +6147,19 @@ var es_array_iterator = defineIterator(Array, 'Array', function (iterated, kind)
 // argumentsList[@@iterator] is %ArrayProto_values%
 // https://tc39.es/ecma262/#sec-createunmappedargumentsobject
 // https://tc39.es/ecma262/#sec-createmappedargumentsobject
-iterators.Arguments = iterators.Array;
+var values = iterators.Arguments = iterators.Array;
 
 var hiddenKeys$1 = enumBugKeys.concat('length', 'prototype');
 
 // `Object.getOwnPropertyNames` method
 // https://tc39.es/ecma262/#sec-object.getownpropertynames
 // eslint-disable-next-line es/no-object-getownpropertynames -- safe
-var f$4 = Object.getOwnPropertyNames || function getOwnPropertyNames(O) {
+var f$5 = Object.getOwnPropertyNames || function getOwnPropertyNames(O) {
   return objectKeysInternal(O, hiddenKeys$1);
 };
 
 var objectGetOwnPropertyNames = {
-	f: f$4
+	f: f$5
 };
 
 var createProperty = function (object, key, value) {
@@ -6143,14 +6199,14 @@ var getWindowNames = function (it) {
 };
 
 // fallback for IE11 buggy Object.getOwnPropertyNames with iframe and window
-var f$5 = function getOwnPropertyNames(it) {
+var f$6 = function getOwnPropertyNames(it) {
   return windowNames && classofRaw(it) == 'Window'
     ? getWindowNames(it)
     : $getOwnPropertyNames(toIndexedObject(it));
 };
 
 var objectGetOwnPropertyNamesExternal = {
-	f: f$5
+	f: f$6
 };
 
 // FF26- bug: ArrayBuffers are non-extensible, but Object.isExtensible does not report it
@@ -6388,7 +6444,7 @@ var constructorRegExp = /^\s*(?:class|function)\b/;
 var exec = functionUncurryThis(constructorRegExp.exec);
 var INCORRECT_TO_STRING = !constructorRegExp.exec(noop$1);
 
-var isConstructorModern = function (argument) {
+var isConstructorModern = function isConstructor(argument) {
   if (!isCallable$1(argument)) return false;
   try {
     construct(noop$1, empty, argument);
@@ -6398,15 +6454,24 @@ var isConstructorModern = function (argument) {
   }
 };
 
-var isConstructorLegacy = function (argument) {
+var isConstructorLegacy = function isConstructor(argument) {
   if (!isCallable$1(argument)) return false;
   switch (classof(argument)) {
     case 'AsyncFunction':
     case 'GeneratorFunction':
     case 'AsyncGeneratorFunction': return false;
+  }
+  try {
     // we can't check .prototype since constructors produced by .bind haven't it
-  } return INCORRECT_TO_STRING || !!exec(constructorRegExp, inspectSource(argument));
+    // `Function#toString` throws on some built-it function in some legacy engines
+    // (for example, `DOMQuad` and similar in FF41-)
+    return INCORRECT_TO_STRING || !!exec(constructorRegExp, inspectSource(argument));
+  } catch (error) {
+    return true;
+  }
 };
+
+isConstructorLegacy.sham = true;
 
 // `IsConstructor` abstract operation
 // https://tc39.es/ecma262/#sec-isconstructor
@@ -6509,7 +6574,7 @@ var arrayIteration = {
   filterReject: createMethod$1(7)
 };
 
-var defineProperty$4 = objectDefineProperty.f;
+var defineProperty$5 = objectDefineProperty.f;
 var forEach = arrayIteration.forEach;
 
 
@@ -6557,7 +6622,7 @@ var collection = function (CONSTRUCTOR_NAME, wrapper, common) {
       }
     });
 
-    IS_WEAK || defineProperty$4(Prototype, 'size', {
+    IS_WEAK || defineProperty$5(Prototype, 'size', {
       configurable: true,
       get: function () {
         return getInternalState(this).collection.size;
@@ -6596,7 +6661,7 @@ var setSpecies = function (CONSTRUCTOR_NAME) {
   }
 };
 
-var defineProperty$5 = objectDefineProperty.f;
+var defineProperty$6 = objectDefineProperty.f;
 
 
 
@@ -6747,7 +6812,7 @@ var collectionStrong = {
         return define(this, value = value === 0 ? 0 : value, value);
       }
     });
-    if (descriptors) defineProperty$5(Prototype, 'size', {
+    if (descriptors) defineProperty$6(Prototype, 'size', {
       get: function () {
         return getInternalState(this).size;
       }
@@ -6934,7 +6999,7 @@ var ariaPropsMap_1 = createCommonjsModule(function (module, exports) {
 
 
 
-defineProperty$2(exports, "__esModule", {
+defineProperty$3(exports, "__esModule", {
   value: true
 });
 
@@ -7062,7 +7127,7 @@ var domMap_1 = createCommonjsModule(function (module, exports) {
 
 
 
-defineProperty$2(exports, "__esModule", {
+defineProperty$3(exports, "__esModule", {
   value: true
 });
 
@@ -7341,6 +7406,8 @@ var getIterator$2 = getIterator$1;
 
 var getIterator$3 = getIterator$2;
 
+var getIterator$4 = getIterator$3;
+
 // `Array.isArray` method
 // https://tc39.es/ecma262/#sec-array.isarray
 _export({ target: 'Array', stat: true }, {
@@ -7360,6 +7427,8 @@ var getIteratorMethod$1 = getIteratorMethod_1;
 var getIteratorMethod$2 = getIteratorMethod$1;
 
 var getIteratorMethod$3 = getIteratorMethod$2;
+
+var getIteratorMethod$4 = getIteratorMethod$3;
 
 var SPECIES$2 = wellKnownSymbol('species');
 
@@ -7428,25 +7497,25 @@ _export({ target: 'Array', proto: true, forced: FORCED }, {
 });
 
 // eslint-disable-next-line es/no-object-getownpropertysymbols -- safe
-var f$6 = Object.getOwnPropertySymbols;
+var f$7 = Object.getOwnPropertySymbols;
 
 var objectGetOwnPropertySymbols = {
-	f: f$6
+	f: f$7
 };
 
 var arraySlice = functionUncurryThis([].slice);
 
-var f$7 = wellKnownSymbol;
+var f$8 = wellKnownSymbol;
 
 var wellKnownSymbolWrapped = {
-	f: f$7
+	f: f$8
 };
 
-var defineProperty$6 = objectDefineProperty.f;
+var defineProperty$7 = objectDefineProperty.f;
 
 var defineWellKnownSymbol = function (NAME) {
   var Symbol = path.Symbol || (path.Symbol = {});
-  if (!hasOwnProperty_1(Symbol, NAME)) defineProperty$6(Symbol, NAME, {
+  if (!hasOwnProperty_1(Symbol, NAME)) defineProperty$7(Symbol, NAME, {
     value: wellKnownSymbolWrapped.f(NAME)
   });
 };
@@ -7545,7 +7614,7 @@ var $propertyIsEnumerable$1 = function propertyIsEnumerable(V) {
     ? enumerable : true;
 };
 
-var $getOwnPropertyDescriptor$1 = function getOwnPropertyDescriptor(O, P) {
+var $getOwnPropertyDescriptor$2 = function getOwnPropertyDescriptor(O, P) {
   var it = toIndexedObject(O);
   var key = toPropertyKey(P);
   if (it === ObjectPrototype$1 && hasOwnProperty_1(AllSymbols, key) && !hasOwnProperty_1(ObjectPrototypeSymbols, key)) return;
@@ -7605,7 +7674,8 @@ if (!nativeSymbol) {
 
   objectPropertyIsEnumerable.f = $propertyIsEnumerable$1;
   objectDefineProperty.f = $defineProperty$1;
-  objectGetOwnPropertyDescriptor.f = $getOwnPropertyDescriptor$1;
+  objectDefineProperties.f = $defineProperties;
+  objectGetOwnPropertyDescriptor.f = $getOwnPropertyDescriptor$2;
   objectGetOwnPropertyNames.f = objectGetOwnPropertyNamesExternal.f = $getOwnPropertyNames$1;
   objectGetOwnPropertySymbols.f = $getOwnPropertySymbols;
 
@@ -7665,7 +7735,7 @@ _export({ target: 'Object', stat: true, forced: !nativeSymbol, sham: !descriptor
   defineProperties: $defineProperties,
   // `Object.getOwnPropertyDescriptor` method
   // https://tc39.es/ecma262/#sec-object.getownpropertydescriptors
-  getOwnPropertyDescriptor: $getOwnPropertyDescriptor$1
+  getOwnPropertyDescriptor: $getOwnPropertyDescriptor$2
 });
 
 _export({ target: 'Object', stat: true, forced: !nativeSymbol }, {
@@ -7944,14 +8014,16 @@ var slice$2 = slice$1;
 
 var slice$3 = slice$2;
 
-var defineProperty$7 = defineProperty$1;
+var defineProperty$8 = defineProperty$2;
 
-var defineProperty$8 = defineProperty$7;
+var defineProperty$9 = defineProperty$8;
 
-var defineProperty$9 = createCommonjsModule(function (module) {
+var defineProperty$a = defineProperty$9;
+
+var defineProperty$b = createCommonjsModule(function (module) {
 function _defineProperty(obj, key, value) {
   if (key in obj) {
-    defineProperty$8(obj, key, {
+    defineProperty$a(obj, key, {
       value: value,
       enumerable: true,
       configurable: true,
@@ -7964,24 +8036,23 @@ function _defineProperty(obj, key, value) {
   return obj;
 }
 
-module.exports = _defineProperty;
-module.exports["default"] = module.exports, module.exports.__esModule = true;
+module.exports = _defineProperty, module.exports.__esModule = true, module.exports["default"] = module.exports;
 });
 
 // eslint-disable-next-line es/no-object-assign -- safe
 var $assign = Object.assign;
 // eslint-disable-next-line es/no-object-defineproperty -- required for testing
-var defineProperty$a = Object.defineProperty;
+var defineProperty$c = Object.defineProperty;
 var concat = functionUncurryThis([].concat);
 
 // `Object.assign` method
 // https://tc39.es/ecma262/#sec-object.assign
 var objectAssign = !$assign || fails(function () {
   // should have correct order of operations (Edge bug)
-  if (descriptors && $assign({ b: 1 }, $assign(defineProperty$a({}, 'a', {
+  if (descriptors && $assign({ b: 1 }, $assign(defineProperty$c({}, 'a', {
     enumerable: true,
     get: function () {
-      defineProperty$a(this, 'b', {
+      defineProperty$c(this, 'b', {
         value: 3,
         enumerable: false
       });
@@ -8047,8 +8118,8 @@ var keys$3 = keys$2;
 var arrayMethodIsStrict = function (METHOD_NAME, argument) {
   var method = [][METHOD_NAME];
   return !!method && fails(function () {
-    // eslint-disable-next-line no-useless-call,no-throw-literal -- required for testing
-    method.call(null, argument || function () { throw 1; }, 1);
+    // eslint-disable-next-line no-useless-call -- required for testing
+    method.call(null, argument || function () { return 1; }, 1);
   });
 };
 
@@ -8094,7 +8165,7 @@ var commandRole_1 = createCommonjsModule(function (module, exports) {
 
 
 
-defineProperty$2(exports, "__esModule", {
+defineProperty$3(exports, "__esModule", {
   value: true
 });
 
@@ -8127,7 +8198,7 @@ var compositeRole_1 = createCommonjsModule(function (module, exports) {
 
 
 
-defineProperty$2(exports, "__esModule", {
+defineProperty$3(exports, "__esModule", {
   value: true
 });
 
@@ -8158,7 +8229,7 @@ var inputRole_1 = createCommonjsModule(function (module, exports) {
 
 
 
-defineProperty$2(exports, "__esModule", {
+defineProperty$3(exports, "__esModule", {
   value: true
 });
 
@@ -8193,7 +8264,7 @@ var landmarkRole_1 = createCommonjsModule(function (module, exports) {
 
 
 
-defineProperty$2(exports, "__esModule", {
+defineProperty$3(exports, "__esModule", {
   value: true
 });
 
@@ -8221,7 +8292,7 @@ var rangeRole_1 = createCommonjsModule(function (module, exports) {
 
 
 
-defineProperty$2(exports, "__esModule", {
+defineProperty$3(exports, "__esModule", {
   value: true
 });
 
@@ -8254,7 +8325,7 @@ var roletypeRole_1 = createCommonjsModule(function (module, exports) {
 
 
 
-defineProperty$2(exports, "__esModule", {
+defineProperty$3(exports, "__esModule", {
   value: true
 });
 
@@ -8315,7 +8386,7 @@ var sectionRole_1 = createCommonjsModule(function (module, exports) {
 
 
 
-defineProperty$2(exports, "__esModule", {
+defineProperty$3(exports, "__esModule", {
   value: true
 });
 
@@ -8358,7 +8429,7 @@ var sectionheadRole_1 = createCommonjsModule(function (module, exports) {
 
 
 
-defineProperty$2(exports, "__esModule", {
+defineProperty$3(exports, "__esModule", {
   value: true
 });
 
@@ -8386,7 +8457,7 @@ var selectRole_1 = createCommonjsModule(function (module, exports) {
 
 
 
-defineProperty$2(exports, "__esModule", {
+defineProperty$3(exports, "__esModule", {
   value: true
 });
 
@@ -8416,7 +8487,7 @@ var structureRole_1 = createCommonjsModule(function (module, exports) {
 
 
 
-defineProperty$2(exports, "__esModule", {
+defineProperty$3(exports, "__esModule", {
   value: true
 });
 
@@ -8444,7 +8515,7 @@ var widgetRole_1 = createCommonjsModule(function (module, exports) {
 
 
 
-defineProperty$2(exports, "__esModule", {
+defineProperty$3(exports, "__esModule", {
   value: true
 });
 
@@ -8472,7 +8543,7 @@ var windowRole_1 = createCommonjsModule(function (module, exports) {
 
 
 
-defineProperty$2(exports, "__esModule", {
+defineProperty$3(exports, "__esModule", {
   value: true
 });
 
@@ -8504,7 +8575,7 @@ var ariaAbstractRoles_1 = createCommonjsModule(function (module, exports) {
 
 
 
-defineProperty$2(exports, "__esModule", {
+defineProperty$3(exports, "__esModule", {
   value: true
 });
 
@@ -8545,7 +8616,7 @@ var alertRole_1 = createCommonjsModule(function (module, exports) {
 
 
 
-defineProperty$2(exports, "__esModule", {
+defineProperty$3(exports, "__esModule", {
   value: true
 });
 
@@ -8581,7 +8652,7 @@ var alertdialogRole_1 = createCommonjsModule(function (module, exports) {
 
 
 
-defineProperty$2(exports, "__esModule", {
+defineProperty$3(exports, "__esModule", {
   value: true
 });
 
@@ -8614,7 +8685,7 @@ var applicationRole_1 = createCommonjsModule(function (module, exports) {
 
 
 
-defineProperty$2(exports, "__esModule", {
+defineProperty$3(exports, "__esModule", {
   value: true
 });
 
@@ -8653,7 +8724,7 @@ var articleRole_1 = createCommonjsModule(function (module, exports) {
 
 
 
-defineProperty$2(exports, "__esModule", {
+defineProperty$3(exports, "__esModule", {
   value: true
 });
 
@@ -8689,7 +8760,7 @@ var bannerRole_1 = createCommonjsModule(function (module, exports) {
 
 
 
-defineProperty$2(exports, "__esModule", {
+defineProperty$3(exports, "__esModule", {
   value: true
 });
 
@@ -8723,7 +8794,7 @@ var blockquoteRole_1 = createCommonjsModule(function (module, exports) {
 
 
 
-defineProperty$2(exports, "__esModule", {
+defineProperty$3(exports, "__esModule", {
   value: true
 });
 
@@ -8751,7 +8822,7 @@ var buttonRole_1 = createCommonjsModule(function (module, exports) {
 
 
 
-defineProperty$2(exports, "__esModule", {
+defineProperty$3(exports, "__esModule", {
   value: true
 });
 
@@ -8861,7 +8932,7 @@ var captionRole_1 = createCommonjsModule(function (module, exports) {
 
 
 
-defineProperty$2(exports, "__esModule", {
+defineProperty$3(exports, "__esModule", {
   value: true
 });
 
@@ -8889,7 +8960,7 @@ var cellRole_1 = createCommonjsModule(function (module, exports) {
 
 
 
-defineProperty$2(exports, "__esModule", {
+defineProperty$3(exports, "__esModule", {
   value: true
 });
 
@@ -8928,7 +8999,7 @@ var checkboxRole_1 = createCommonjsModule(function (module, exports) {
 
 
 
-defineProperty$2(exports, "__esModule", {
+defineProperty$3(exports, "__esModule", {
   value: true
 });
 
@@ -8979,7 +9050,7 @@ var codeRole_1 = createCommonjsModule(function (module, exports) {
 
 
 
-defineProperty$2(exports, "__esModule", {
+defineProperty$3(exports, "__esModule", {
   value: true
 });
 
@@ -9007,7 +9078,7 @@ var columnheaderRole_1 = createCommonjsModule(function (module, exports) {
 
 
 
-defineProperty$2(exports, "__esModule", {
+defineProperty$3(exports, "__esModule", {
   value: true
 });
 
@@ -9046,7 +9117,7 @@ var comboboxRole_1 = createCommonjsModule(function (module, exports) {
 
 
 
-defineProperty$2(exports, "__esModule", {
+defineProperty$3(exports, "__esModule", {
   value: true
 });
 
@@ -9187,7 +9258,7 @@ var complementaryRole_1 = createCommonjsModule(function (module, exports) {
 
 
 
-defineProperty$2(exports, "__esModule", {
+defineProperty$3(exports, "__esModule", {
   value: true
 });
 
@@ -9220,7 +9291,7 @@ var contentinfoRole_1 = createCommonjsModule(function (module, exports) {
 
 
 
-defineProperty$2(exports, "__esModule", {
+defineProperty$3(exports, "__esModule", {
   value: true
 });
 
@@ -9254,7 +9325,7 @@ var definitionRole_1 = createCommonjsModule(function (module, exports) {
 
 
 
-defineProperty$2(exports, "__esModule", {
+defineProperty$3(exports, "__esModule", {
   value: true
 });
 
@@ -9287,7 +9358,7 @@ var deletionRole_1 = createCommonjsModule(function (module, exports) {
 
 
 
-defineProperty$2(exports, "__esModule", {
+defineProperty$3(exports, "__esModule", {
   value: true
 });
 
@@ -9315,7 +9386,7 @@ var dialogRole_1 = createCommonjsModule(function (module, exports) {
 
 
 
-defineProperty$2(exports, "__esModule", {
+defineProperty$3(exports, "__esModule", {
   value: true
 });
 
@@ -9348,7 +9419,7 @@ var directoryRole_1 = createCommonjsModule(function (module, exports) {
 
 
 
-defineProperty$2(exports, "__esModule", {
+defineProperty$3(exports, "__esModule", {
   value: true
 });
 
@@ -9378,7 +9449,7 @@ var documentRole_1 = createCommonjsModule(function (module, exports) {
 
 
 
-defineProperty$2(exports, "__esModule", {
+defineProperty$3(exports, "__esModule", {
   value: true
 });
 
@@ -9415,7 +9486,7 @@ var emphasisRole_1 = createCommonjsModule(function (module, exports) {
 
 
 
-defineProperty$2(exports, "__esModule", {
+defineProperty$3(exports, "__esModule", {
   value: true
 });
 
@@ -9443,7 +9514,7 @@ var feedRole_1 = createCommonjsModule(function (module, exports) {
 
 
 
-defineProperty$2(exports, "__esModule", {
+defineProperty$3(exports, "__esModule", {
   value: true
 });
 
@@ -9471,7 +9542,7 @@ var figureRole_1 = createCommonjsModule(function (module, exports) {
 
 
 
-defineProperty$2(exports, "__esModule", {
+defineProperty$3(exports, "__esModule", {
   value: true
 });
 
@@ -9504,7 +9575,7 @@ var formRole_1 = createCommonjsModule(function (module, exports) {
 
 
 
-defineProperty$2(exports, "__esModule", {
+defineProperty$3(exports, "__esModule", {
   value: true
 });
 
@@ -9559,7 +9630,7 @@ var genericRole_1 = createCommonjsModule(function (module, exports) {
 
 
 
-defineProperty$2(exports, "__esModule", {
+defineProperty$3(exports, "__esModule", {
   value: true
 });
 
@@ -9597,7 +9668,7 @@ var gridRole_1 = createCommonjsModule(function (module, exports) {
 
 
 
-defineProperty$2(exports, "__esModule", {
+defineProperty$3(exports, "__esModule", {
   value: true
 });
 
@@ -9637,7 +9708,7 @@ var gridcellRole_1 = createCommonjsModule(function (module, exports) {
 
 
 
-defineProperty$2(exports, "__esModule", {
+defineProperty$3(exports, "__esModule", {
   value: true
 });
 
@@ -9683,7 +9754,7 @@ var groupRole_1 = createCommonjsModule(function (module, exports) {
 
 
 
-defineProperty$2(exports, "__esModule", {
+defineProperty$3(exports, "__esModule", {
   value: true
 });
 
@@ -9729,7 +9800,7 @@ var headingRole_1 = createCommonjsModule(function (module, exports) {
 
 
 
-defineProperty$2(exports, "__esModule", {
+defineProperty$3(exports, "__esModule", {
   value: true
 });
 
@@ -9791,7 +9862,7 @@ var imgRole_1 = createCommonjsModule(function (module, exports) {
 
 
 
-defineProperty$2(exports, "__esModule", {
+defineProperty$3(exports, "__esModule", {
   value: true
 });
 
@@ -9842,7 +9913,7 @@ var insertionRole_1 = createCommonjsModule(function (module, exports) {
 
 
 
-defineProperty$2(exports, "__esModule", {
+defineProperty$3(exports, "__esModule", {
   value: true
 });
 
@@ -9870,7 +9941,7 @@ var linkRole_1 = createCommonjsModule(function (module, exports) {
 
 
 
-defineProperty$2(exports, "__esModule", {
+defineProperty$3(exports, "__esModule", {
   value: true
 });
 
@@ -9925,7 +9996,7 @@ var listRole_1 = createCommonjsModule(function (module, exports) {
 
 
 
-defineProperty$2(exports, "__esModule", {
+defineProperty$3(exports, "__esModule", {
   value: true
 });
 
@@ -9968,7 +10039,7 @@ var listboxRole_1 = createCommonjsModule(function (module, exports) {
 
 
 
-defineProperty$2(exports, "__esModule", {
+defineProperty$3(exports, "__esModule", {
   value: true
 });
 
@@ -10047,7 +10118,7 @@ var listitemRole_1 = createCommonjsModule(function (module, exports) {
 
 
 
-defineProperty$2(exports, "__esModule", {
+defineProperty$3(exports, "__esModule", {
   value: true
 });
 
@@ -10090,7 +10161,7 @@ var logRole_1 = createCommonjsModule(function (module, exports) {
 
 
 
-defineProperty$2(exports, "__esModule", {
+defineProperty$3(exports, "__esModule", {
   value: true
 });
 
@@ -10120,7 +10191,7 @@ var mainRole_1 = createCommonjsModule(function (module, exports) {
 
 
 
-defineProperty$2(exports, "__esModule", {
+defineProperty$3(exports, "__esModule", {
   value: true
 });
 
@@ -10153,7 +10224,7 @@ var marqueeRole_1 = createCommonjsModule(function (module, exports) {
 
 
 
-defineProperty$2(exports, "__esModule", {
+defineProperty$3(exports, "__esModule", {
   value: true
 });
 
@@ -10181,7 +10252,7 @@ var mathRole_1 = createCommonjsModule(function (module, exports) {
 
 
 
-defineProperty$2(exports, "__esModule", {
+defineProperty$3(exports, "__esModule", {
   value: true
 });
 
@@ -10214,7 +10285,7 @@ var menuRole_1 = createCommonjsModule(function (module, exports) {
 
 
 
-defineProperty$2(exports, "__esModule", {
+defineProperty$3(exports, "__esModule", {
   value: true
 });
 
@@ -10264,7 +10335,7 @@ var menubarRole_1 = createCommonjsModule(function (module, exports) {
 
 
 
-defineProperty$2(exports, "__esModule", {
+defineProperty$3(exports, "__esModule", {
   value: true
 });
 
@@ -10299,7 +10370,7 @@ var menuitemRole_1 = createCommonjsModule(function (module, exports) {
 
 
 
-defineProperty$2(exports, "__esModule", {
+defineProperty$3(exports, "__esModule", {
   value: true
 });
 
@@ -10353,7 +10424,7 @@ var menuitemcheckboxRole_1 = createCommonjsModule(function (module, exports) {
 
 
 
-defineProperty$2(exports, "__esModule", {
+defineProperty$3(exports, "__esModule", {
   value: true
 });
 
@@ -10388,7 +10459,7 @@ var menuitemradioRole_1 = createCommonjsModule(function (module, exports) {
 
 
 
-defineProperty$2(exports, "__esModule", {
+defineProperty$3(exports, "__esModule", {
   value: true
 });
 
@@ -10423,7 +10494,7 @@ var meterRole_1 = createCommonjsModule(function (module, exports) {
 
 
 
-defineProperty$2(exports, "__esModule", {
+defineProperty$3(exports, "__esModule", {
   value: true
 });
 
@@ -10455,7 +10526,7 @@ var navigationRole_1 = createCommonjsModule(function (module, exports) {
 
 
 
-defineProperty$2(exports, "__esModule", {
+defineProperty$3(exports, "__esModule", {
   value: true
 });
 
@@ -10488,7 +10559,7 @@ var noneRole_1 = createCommonjsModule(function (module, exports) {
 
 
 
-defineProperty$2(exports, "__esModule", {
+defineProperty$3(exports, "__esModule", {
   value: true
 });
 
@@ -10516,7 +10587,7 @@ var noteRole_1 = createCommonjsModule(function (module, exports) {
 
 
 
-defineProperty$2(exports, "__esModule", {
+defineProperty$3(exports, "__esModule", {
   value: true
 });
 
@@ -10544,7 +10615,7 @@ var optionRole_1 = createCommonjsModule(function (module, exports) {
 
 
 
-defineProperty$2(exports, "__esModule", {
+defineProperty$3(exports, "__esModule", {
   value: true
 });
 
@@ -10594,7 +10665,7 @@ var paragraphRole_1 = createCommonjsModule(function (module, exports) {
 
 
 
-defineProperty$2(exports, "__esModule", {
+defineProperty$3(exports, "__esModule", {
   value: true
 });
 
@@ -10622,7 +10693,7 @@ var presentationRole_1 = createCommonjsModule(function (module, exports) {
 
 
 
-defineProperty$2(exports, "__esModule", {
+defineProperty$3(exports, "__esModule", {
   value: true
 });
 
@@ -10650,7 +10721,7 @@ var progressbarRole_1 = createCommonjsModule(function (module, exports) {
 
 
 
-defineProperty$2(exports, "__esModule", {
+defineProperty$3(exports, "__esModule", {
   value: true
 });
 
@@ -10688,7 +10759,7 @@ var radioRole_1 = createCommonjsModule(function (module, exports) {
 
 
 
-defineProperty$2(exports, "__esModule", {
+defineProperty$3(exports, "__esModule", {
   value: true
 });
 
@@ -10731,7 +10802,7 @@ var radiogroupRole_1 = createCommonjsModule(function (module, exports) {
 
 
 
-defineProperty$2(exports, "__esModule", {
+defineProperty$3(exports, "__esModule", {
   value: true
 });
 
@@ -10769,7 +10840,7 @@ var regionRole_1 = createCommonjsModule(function (module, exports) {
 
 
 
-defineProperty$2(exports, "__esModule", {
+defineProperty$3(exports, "__esModule", {
   value: true
 });
 
@@ -10824,7 +10895,7 @@ var rowRole_1 = createCommonjsModule(function (module, exports) {
 
 
 
-defineProperty$2(exports, "__esModule", {
+defineProperty$3(exports, "__esModule", {
   value: true
 });
 
@@ -10865,7 +10936,7 @@ var rowgroupRole_1 = createCommonjsModule(function (module, exports) {
 
 
 
-defineProperty$2(exports, "__esModule", {
+defineProperty$3(exports, "__esModule", {
   value: true
 });
 
@@ -10908,7 +10979,7 @@ var rowheaderRole_1 = createCommonjsModule(function (module, exports) {
 
 
 
-defineProperty$2(exports, "__esModule", {
+defineProperty$3(exports, "__esModule", {
   value: true
 });
 
@@ -10947,7 +11018,7 @@ var scrollbarRole_1 = createCommonjsModule(function (module, exports) {
 
 
 
-defineProperty$2(exports, "__esModule", {
+defineProperty$3(exports, "__esModule", {
   value: true
 });
 
@@ -10983,7 +11054,7 @@ var searchRole_1 = createCommonjsModule(function (module, exports) {
 
 
 
-defineProperty$2(exports, "__esModule", {
+defineProperty$3(exports, "__esModule", {
   value: true
 });
 
@@ -11011,7 +11082,7 @@ var searchboxRole_1 = createCommonjsModule(function (module, exports) {
 
 
 
-defineProperty$2(exports, "__esModule", {
+defineProperty$3(exports, "__esModule", {
   value: true
 });
 
@@ -11051,7 +11122,7 @@ var separatorRole_1 = createCommonjsModule(function (module, exports) {
 
 
 
-defineProperty$2(exports, "__esModule", {
+defineProperty$3(exports, "__esModule", {
   value: true
 });
 
@@ -11090,7 +11161,7 @@ var sliderRole_1 = createCommonjsModule(function (module, exports) {
 
 
 
-defineProperty$2(exports, "__esModule", {
+defineProperty$3(exports, "__esModule", {
   value: true
 });
 
@@ -11137,7 +11208,7 @@ var spinbuttonRole_1 = createCommonjsModule(function (module, exports) {
 
 
 
-defineProperty$2(exports, "__esModule", {
+defineProperty$3(exports, "__esModule", {
   value: true
 });
 
@@ -11180,7 +11251,7 @@ var statusRole_1 = createCommonjsModule(function (module, exports) {
 
 
 
-defineProperty$2(exports, "__esModule", {
+defineProperty$3(exports, "__esModule", {
   value: true
 });
 
@@ -11216,7 +11287,7 @@ var strongRole_1 = createCommonjsModule(function (module, exports) {
 
 
 
-defineProperty$2(exports, "__esModule", {
+defineProperty$3(exports, "__esModule", {
   value: true
 });
 
@@ -11244,7 +11315,7 @@ var subscriptRole_1 = createCommonjsModule(function (module, exports) {
 
 
 
-defineProperty$2(exports, "__esModule", {
+defineProperty$3(exports, "__esModule", {
   value: true
 });
 
@@ -11272,7 +11343,7 @@ var superscriptRole_1 = createCommonjsModule(function (module, exports) {
 
 
 
-defineProperty$2(exports, "__esModule", {
+defineProperty$3(exports, "__esModule", {
   value: true
 });
 
@@ -11300,7 +11371,7 @@ var switchRole_1 = createCommonjsModule(function (module, exports) {
 
 
 
-defineProperty$2(exports, "__esModule", {
+defineProperty$3(exports, "__esModule", {
   value: true
 });
 
@@ -11335,7 +11406,7 @@ var tabRole_1 = createCommonjsModule(function (module, exports) {
 
 
 
-defineProperty$2(exports, "__esModule", {
+defineProperty$3(exports, "__esModule", {
   value: true
 });
 
@@ -11370,7 +11441,7 @@ var tableRole_1 = createCommonjsModule(function (module, exports) {
 
 
 
-defineProperty$2(exports, "__esModule", {
+defineProperty$3(exports, "__esModule", {
   value: true
 });
 
@@ -11406,7 +11477,7 @@ var tablistRole_1 = createCommonjsModule(function (module, exports) {
 
 
 
-defineProperty$2(exports, "__esModule", {
+defineProperty$3(exports, "__esModule", {
   value: true
 });
 
@@ -11443,7 +11514,7 @@ var tabpanelRole_1 = createCommonjsModule(function (module, exports) {
 
 
 
-defineProperty$2(exports, "__esModule", {
+defineProperty$3(exports, "__esModule", {
   value: true
 });
 
@@ -11471,7 +11542,7 @@ var termRole_1 = createCommonjsModule(function (module, exports) {
 
 
 
-defineProperty$2(exports, "__esModule", {
+defineProperty$3(exports, "__esModule", {
   value: true
 });
 
@@ -11504,7 +11575,7 @@ var textboxRole_1 = createCommonjsModule(function (module, exports) {
 
 
 
-defineProperty$2(exports, "__esModule", {
+defineProperty$3(exports, "__esModule", {
   value: true
 });
 
@@ -11612,7 +11683,7 @@ var timeRole_1 = createCommonjsModule(function (module, exports) {
 
 
 
-defineProperty$2(exports, "__esModule", {
+defineProperty$3(exports, "__esModule", {
   value: true
 });
 
@@ -11640,7 +11711,7 @@ var timerRole_1 = createCommonjsModule(function (module, exports) {
 
 
 
-defineProperty$2(exports, "__esModule", {
+defineProperty$3(exports, "__esModule", {
   value: true
 });
 
@@ -11668,7 +11739,7 @@ var toolbarRole_1 = createCommonjsModule(function (module, exports) {
 
 
 
-defineProperty$2(exports, "__esModule", {
+defineProperty$3(exports, "__esModule", {
   value: true
 });
 
@@ -11703,7 +11774,7 @@ var tooltipRole_1 = createCommonjsModule(function (module, exports) {
 
 
 
-defineProperty$2(exports, "__esModule", {
+defineProperty$3(exports, "__esModule", {
   value: true
 });
 
@@ -11731,7 +11802,7 @@ var treeRole_1 = createCommonjsModule(function (module, exports) {
 
 
 
-defineProperty$2(exports, "__esModule", {
+defineProperty$3(exports, "__esModule", {
   value: true
 });
 
@@ -11765,7 +11836,7 @@ var treegridRole_1 = createCommonjsModule(function (module, exports) {
 
 
 
-defineProperty$2(exports, "__esModule", {
+defineProperty$3(exports, "__esModule", {
   value: true
 });
 
@@ -11793,7 +11864,7 @@ var treeitemRole_1 = createCommonjsModule(function (module, exports) {
 
 
 
-defineProperty$2(exports, "__esModule", {
+defineProperty$3(exports, "__esModule", {
   value: true
 });
 
@@ -11826,7 +11897,7 @@ var ariaLiteralRoles_1 = createCommonjsModule(function (module, exports) {
 
 
 
-defineProperty$2(exports, "__esModule", {
+defineProperty$3(exports, "__esModule", {
   value: true
 });
 
@@ -12007,7 +12078,7 @@ var docAbstractRole_1 = createCommonjsModule(function (module, exports) {
 
 
 
-defineProperty$2(exports, "__esModule", {
+defineProperty$3(exports, "__esModule", {
   value: true
 });
 
@@ -12046,7 +12117,7 @@ var docAcknowledgmentsRole_1 = createCommonjsModule(function (module, exports) {
 
 
 
-defineProperty$2(exports, "__esModule", {
+defineProperty$3(exports, "__esModule", {
   value: true
 });
 
@@ -12085,7 +12156,7 @@ var docAfterwordRole_1 = createCommonjsModule(function (module, exports) {
 
 
 
-defineProperty$2(exports, "__esModule", {
+defineProperty$3(exports, "__esModule", {
   value: true
 });
 
@@ -12124,7 +12195,7 @@ var docAppendixRole_1 = createCommonjsModule(function (module, exports) {
 
 
 
-defineProperty$2(exports, "__esModule", {
+defineProperty$3(exports, "__esModule", {
   value: true
 });
 
@@ -12163,7 +12234,7 @@ var docBacklinkRole_1 = createCommonjsModule(function (module, exports) {
 
 
 
-defineProperty$2(exports, "__esModule", {
+defineProperty$3(exports, "__esModule", {
   value: true
 });
 
@@ -12200,7 +12271,7 @@ var docBiblioentryRole_1 = createCommonjsModule(function (module, exports) {
 
 
 
-defineProperty$2(exports, "__esModule", {
+defineProperty$3(exports, "__esModule", {
   value: true
 });
 
@@ -12239,7 +12310,7 @@ var docBibliographyRole_1 = createCommonjsModule(function (module, exports) {
 
 
 
-defineProperty$2(exports, "__esModule", {
+defineProperty$3(exports, "__esModule", {
   value: true
 });
 
@@ -12278,7 +12349,7 @@ var docBibliorefRole_1 = createCommonjsModule(function (module, exports) {
 
 
 
-defineProperty$2(exports, "__esModule", {
+defineProperty$3(exports, "__esModule", {
   value: true
 });
 
@@ -12315,7 +12386,7 @@ var docChapterRole_1 = createCommonjsModule(function (module, exports) {
 
 
 
-defineProperty$2(exports, "__esModule", {
+defineProperty$3(exports, "__esModule", {
   value: true
 });
 
@@ -12354,7 +12425,7 @@ var docColophonRole_1 = createCommonjsModule(function (module, exports) {
 
 
 
-defineProperty$2(exports, "__esModule", {
+defineProperty$3(exports, "__esModule", {
   value: true
 });
 
@@ -12393,7 +12464,7 @@ var docConclusionRole_1 = createCommonjsModule(function (module, exports) {
 
 
 
-defineProperty$2(exports, "__esModule", {
+defineProperty$3(exports, "__esModule", {
   value: true
 });
 
@@ -12432,7 +12503,7 @@ var docCoverRole_1 = createCommonjsModule(function (module, exports) {
 
 
 
-defineProperty$2(exports, "__esModule", {
+defineProperty$3(exports, "__esModule", {
   value: true
 });
 
@@ -12471,7 +12542,7 @@ var docCreditRole_1 = createCommonjsModule(function (module, exports) {
 
 
 
-defineProperty$2(exports, "__esModule", {
+defineProperty$3(exports, "__esModule", {
   value: true
 });
 
@@ -12510,7 +12581,7 @@ var docCreditsRole_1 = createCommonjsModule(function (module, exports) {
 
 
 
-defineProperty$2(exports, "__esModule", {
+defineProperty$3(exports, "__esModule", {
   value: true
 });
 
@@ -12549,7 +12620,7 @@ var docDedicationRole_1 = createCommonjsModule(function (module, exports) {
 
 
 
-defineProperty$2(exports, "__esModule", {
+defineProperty$3(exports, "__esModule", {
   value: true
 });
 
@@ -12588,7 +12659,7 @@ var docEndnoteRole_1 = createCommonjsModule(function (module, exports) {
 
 
 
-defineProperty$2(exports, "__esModule", {
+defineProperty$3(exports, "__esModule", {
   value: true
 });
 
@@ -12627,7 +12698,7 @@ var docEndnotesRole_1 = createCommonjsModule(function (module, exports) {
 
 
 
-defineProperty$2(exports, "__esModule", {
+defineProperty$3(exports, "__esModule", {
   value: true
 });
 
@@ -12666,7 +12737,7 @@ var docEpigraphRole_1 = createCommonjsModule(function (module, exports) {
 
 
 
-defineProperty$2(exports, "__esModule", {
+defineProperty$3(exports, "__esModule", {
   value: true
 });
 
@@ -12705,7 +12776,7 @@ var docEpilogueRole_1 = createCommonjsModule(function (module, exports) {
 
 
 
-defineProperty$2(exports, "__esModule", {
+defineProperty$3(exports, "__esModule", {
   value: true
 });
 
@@ -12744,7 +12815,7 @@ var docErrataRole_1 = createCommonjsModule(function (module, exports) {
 
 
 
-defineProperty$2(exports, "__esModule", {
+defineProperty$3(exports, "__esModule", {
   value: true
 });
 
@@ -12783,7 +12854,7 @@ var docExampleRole_1 = createCommonjsModule(function (module, exports) {
 
 
 
-defineProperty$2(exports, "__esModule", {
+defineProperty$3(exports, "__esModule", {
   value: true
 });
 
@@ -12817,7 +12888,7 @@ var docFootnoteRole_1 = createCommonjsModule(function (module, exports) {
 
 
 
-defineProperty$2(exports, "__esModule", {
+defineProperty$3(exports, "__esModule", {
   value: true
 });
 
@@ -12856,7 +12927,7 @@ var docForewordRole_1 = createCommonjsModule(function (module, exports) {
 
 
 
-defineProperty$2(exports, "__esModule", {
+defineProperty$3(exports, "__esModule", {
   value: true
 });
 
@@ -12895,7 +12966,7 @@ var docGlossaryRole_1 = createCommonjsModule(function (module, exports) {
 
 
 
-defineProperty$2(exports, "__esModule", {
+defineProperty$3(exports, "__esModule", {
   value: true
 });
 
@@ -12934,7 +13005,7 @@ var docGlossrefRole_1 = createCommonjsModule(function (module, exports) {
 
 
 
-defineProperty$2(exports, "__esModule", {
+defineProperty$3(exports, "__esModule", {
   value: true
 });
 
@@ -12971,7 +13042,7 @@ var docIndexRole_1 = createCommonjsModule(function (module, exports) {
 
 
 
-defineProperty$2(exports, "__esModule", {
+defineProperty$3(exports, "__esModule", {
   value: true
 });
 
@@ -13010,7 +13081,7 @@ var docIntroductionRole_1 = createCommonjsModule(function (module, exports) {
 
 
 
-defineProperty$2(exports, "__esModule", {
+defineProperty$3(exports, "__esModule", {
   value: true
 });
 
@@ -13049,7 +13120,7 @@ var docNoterefRole_1 = createCommonjsModule(function (module, exports) {
 
 
 
-defineProperty$2(exports, "__esModule", {
+defineProperty$3(exports, "__esModule", {
   value: true
 });
 
@@ -13086,7 +13157,7 @@ var docNoticeRole_1 = createCommonjsModule(function (module, exports) {
 
 
 
-defineProperty$2(exports, "__esModule", {
+defineProperty$3(exports, "__esModule", {
   value: true
 });
 
@@ -13125,7 +13196,7 @@ var docPagebreakRole_1 = createCommonjsModule(function (module, exports) {
 
 
 
-defineProperty$2(exports, "__esModule", {
+defineProperty$3(exports, "__esModule", {
   value: true
 });
 
@@ -13163,7 +13234,7 @@ var docPagelistRole_1 = createCommonjsModule(function (module, exports) {
 
 
 
-defineProperty$2(exports, "__esModule", {
+defineProperty$3(exports, "__esModule", {
   value: true
 });
 
@@ -13202,7 +13273,7 @@ var docPartRole_1 = createCommonjsModule(function (module, exports) {
 
 
 
-defineProperty$2(exports, "__esModule", {
+defineProperty$3(exports, "__esModule", {
   value: true
 });
 
@@ -13241,7 +13312,7 @@ var docPrefaceRole_1 = createCommonjsModule(function (module, exports) {
 
 
 
-defineProperty$2(exports, "__esModule", {
+defineProperty$3(exports, "__esModule", {
   value: true
 });
 
@@ -13280,7 +13351,7 @@ var docPrologueRole_1 = createCommonjsModule(function (module, exports) {
 
 
 
-defineProperty$2(exports, "__esModule", {
+defineProperty$3(exports, "__esModule", {
   value: true
 });
 
@@ -13319,7 +13390,7 @@ var docPullquoteRole_1 = createCommonjsModule(function (module, exports) {
 
 
 
-defineProperty$2(exports, "__esModule", {
+defineProperty$3(exports, "__esModule", {
   value: true
 });
 
@@ -13352,7 +13423,7 @@ var docQnaRole_1 = createCommonjsModule(function (module, exports) {
 
 
 
-defineProperty$2(exports, "__esModule", {
+defineProperty$3(exports, "__esModule", {
   value: true
 });
 
@@ -13391,7 +13462,7 @@ var docSubtitleRole_1 = createCommonjsModule(function (module, exports) {
 
 
 
-defineProperty$2(exports, "__esModule", {
+defineProperty$3(exports, "__esModule", {
   value: true
 });
 
@@ -13430,7 +13501,7 @@ var docTipRole_1 = createCommonjsModule(function (module, exports) {
 
 
 
-defineProperty$2(exports, "__esModule", {
+defineProperty$3(exports, "__esModule", {
   value: true
 });
 
@@ -13469,7 +13540,7 @@ var docTocRole_1 = createCommonjsModule(function (module, exports) {
 
 
 
-defineProperty$2(exports, "__esModule", {
+defineProperty$3(exports, "__esModule", {
   value: true
 });
 
@@ -13510,7 +13581,7 @@ var ariaDpubRoles_1 = createCommonjsModule(function (module, exports) {
 
 
 
-defineProperty$2(exports, "__esModule", {
+defineProperty$3(exports, "__esModule", {
   value: true
 });
 
@@ -13607,17 +13678,17 @@ var rolesMap_1 = createCommonjsModule(function (module, exports) {
 
 
 
-defineProperty$2(exports, "__esModule", {
+defineProperty$3(exports, "__esModule", {
   value: true
 });
 
 exports.default = void 0;
 
-var _getIterator2 = interopRequireDefault(getIterator$3);
+var _getIterator2 = interopRequireDefault(getIterator$4);
 
 var _isArray = interopRequireDefault(isArray$3);
 
-var _getIteratorMethod2 = interopRequireDefault(getIteratorMethod$3);
+var _getIteratorMethod2 = interopRequireDefault(getIteratorMethod$4);
 
 var _symbol = interopRequireDefault(symbol$2);
 
@@ -13625,7 +13696,7 @@ var _from = interopRequireDefault(from_1$2);
 
 var _slice = interopRequireDefault(slice$3);
 
-var _defineProperty2 = interopRequireDefault(defineProperty$9);
+var _defineProperty2 = interopRequireDefault(defineProperty$b);
 
 var _assign = interopRequireDefault(assign$2);
 
@@ -13714,14 +13785,17 @@ var isArray$4 = isArray$2;
 
 var isArray$5 = isArray$4;
 
+var isArray$6 = isArray$5;
+
 var arrayWithHoles = createCommonjsModule(function (module) {
 function _arrayWithHoles(arr) {
-  if (isArray$5(arr)) return arr;
+  if (isArray$6(arr)) return arr;
 }
 
-module.exports = _arrayWithHoles;
-module.exports["default"] = module.exports, module.exports.__esModule = true;
+module.exports = _arrayWithHoles, module.exports.__esModule = true, module.exports["default"] = module.exports;
 });
+
+var symbol$3 = symbol$1;
 
 // `Symbol.asyncDispose` well-known symbol
 // https://github.com/tc39/proposal-using-statement
@@ -13760,13 +13834,13 @@ defineWellKnownSymbol('replaceAll');
 // TODO: Remove from `core-js@4`
 
 
-var symbol$3 = symbol$1;
-
 var symbol$4 = symbol$3;
+
+var symbol$5 = symbol$4;
 
 var iterableToArrayLimit = createCommonjsModule(function (module) {
 function _iterableToArrayLimit(arr, i) {
-  var _i = arr == null ? null : typeof symbol$4 !== "undefined" && getIteratorMethod$3(arr) || arr["@@iterator"];
+  var _i = arr == null ? null : typeof symbol$5 !== "undefined" && getIteratorMethod$4(arr) || arr["@@iterator"];
 
   if (_i == null) return;
   var _arr = [];
@@ -13795,17 +13869,20 @@ function _iterableToArrayLimit(arr, i) {
   return _arr;
 }
 
-module.exports = _iterableToArrayLimit;
-module.exports["default"] = module.exports, module.exports.__esModule = true;
+module.exports = _iterableToArrayLimit, module.exports.__esModule = true, module.exports["default"] = module.exports;
 });
 
 var slice$4 = slice$2;
 
 var slice$5 = slice$4;
 
+var slice$6 = slice$5;
+
 var from_1$3 = from_1$1;
 
 var from_1$4 = from_1$3;
+
+var from_1$5 = from_1$4;
 
 var arrayLikeToArray = createCommonjsModule(function (module) {
 function _arrayLikeToArray(arr, len) {
@@ -13818,8 +13895,7 @@ function _arrayLikeToArray(arr, len) {
   return arr2;
 }
 
-module.exports = _arrayLikeToArray;
-module.exports["default"] = module.exports, module.exports.__esModule = true;
+module.exports = _arrayLikeToArray, module.exports.__esModule = true, module.exports["default"] = module.exports;
 });
 
 var unsupportedIterableToArray = createCommonjsModule(function (module) {
@@ -13829,15 +13905,14 @@ function _unsupportedIterableToArray(o, minLen) {
   if (!o) return;
   if (typeof o === "string") return arrayLikeToArray(o, minLen);
 
-  var n = slice$5(_context = Object.prototype.toString.call(o)).call(_context, 8, -1);
+  var n = slice$6(_context = Object.prototype.toString.call(o)).call(_context, 8, -1);
 
   if (n === "Object" && o.constructor) n = o.constructor.name;
-  if (n === "Map" || n === "Set") return from_1$4(o);
+  if (n === "Map" || n === "Set") return from_1$5(o);
   if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return arrayLikeToArray(o, minLen);
 }
 
-module.exports = _unsupportedIterableToArray;
-module.exports["default"] = module.exports, module.exports.__esModule = true;
+module.exports = _unsupportedIterableToArray, module.exports.__esModule = true, module.exports["default"] = module.exports;
 });
 
 var nonIterableRest = createCommonjsModule(function (module) {
@@ -13845,8 +13920,7 @@ function _nonIterableRest() {
   throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.");
 }
 
-module.exports = _nonIterableRest;
-module.exports["default"] = module.exports, module.exports.__esModule = true;
+module.exports = _nonIterableRest, module.exports.__esModule = true, module.exports["default"] = module.exports;
 });
 
 var slicedToArray = createCommonjsModule(function (module) {
@@ -13854,8 +13928,7 @@ function _slicedToArray(arr, i) {
   return arrayWithHoles(arr) || iterableToArrayLimit(arr, i) || unsupportedIterableToArray(arr, i) || nonIterableRest();
 }
 
-module.exports = _slicedToArray;
-module.exports["default"] = module.exports, module.exports.__esModule = true;
+module.exports = _slicedToArray, module.exports.__esModule = true, module.exports["default"] = module.exports;
 });
 
 var entries = entryVirtual('Array').entries;
@@ -13992,20 +14065,18 @@ var keys$7 = keys$6;
 
 var arrayWithoutHoles = createCommonjsModule(function (module) {
 function _arrayWithoutHoles(arr) {
-  if (isArray$5(arr)) return arrayLikeToArray(arr);
+  if (isArray$6(arr)) return arrayLikeToArray(arr);
 }
 
-module.exports = _arrayWithoutHoles;
-module.exports["default"] = module.exports, module.exports.__esModule = true;
+module.exports = _arrayWithoutHoles, module.exports.__esModule = true, module.exports["default"] = module.exports;
 });
 
 var iterableToArray = createCommonjsModule(function (module) {
 function _iterableToArray(iter) {
-  if (typeof symbol$4 !== "undefined" && getIteratorMethod$3(iter) != null || iter["@@iterator"] != null) return from_1$4(iter);
+  if (typeof symbol$5 !== "undefined" && getIteratorMethod$4(iter) != null || iter["@@iterator"] != null) return from_1$5(iter);
 }
 
-module.exports = _iterableToArray;
-module.exports["default"] = module.exports, module.exports.__esModule = true;
+module.exports = _iterableToArray, module.exports.__esModule = true, module.exports["default"] = module.exports;
 });
 
 var nonIterableSpread = createCommonjsModule(function (module) {
@@ -14013,8 +14084,7 @@ function _nonIterableSpread() {
   throw new TypeError("Invalid attempt to spread non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.");
 }
 
-module.exports = _nonIterableSpread;
-module.exports["default"] = module.exports, module.exports.__esModule = true;
+module.exports = _nonIterableSpread, module.exports.__esModule = true, module.exports["default"] = module.exports;
 });
 
 var toConsumableArray = createCommonjsModule(function (module) {
@@ -14022,8 +14092,7 @@ function _toConsumableArray(arr) {
   return arrayWithoutHoles(arr) || iterableToArray(arr) || unsupportedIterableToArray(arr) || nonIterableSpread();
 }
 
-module.exports = _toConsumableArray;
-module.exports["default"] = module.exports, module.exports.__esModule = true;
+module.exports = _toConsumableArray, module.exports.__esModule = true, module.exports["default"] = module.exports;
 });
 
 var elementRoleMap_1 = createCommonjsModule(function (module, exports) {
@@ -14032,7 +14101,7 @@ var elementRoleMap_1 = createCommonjsModule(function (module, exports) {
 
 
 
-defineProperty$2(exports, "__esModule", {
+defineProperty$3(exports, "__esModule", {
   value: true
 });
 
@@ -14106,7 +14175,7 @@ var roleElementMap_1 = createCommonjsModule(function (module, exports) {
 
 
 
-defineProperty$2(exports, "__esModule", {
+defineProperty$3(exports, "__esModule", {
   value: true
 });
 
@@ -14158,7 +14227,7 @@ var lib = createCommonjsModule(function (module, exports) {
 
 
 
-defineProperty$2(exports, "__esModule", {
+defineProperty$3(exports, "__esModule", {
   value: true
 });
 

@@ -19,7 +19,7 @@ const optionsSchema = object({
   enableSharing: boolean().notRequired(),
   dynamicBlur: boolean().notRequired(),
   posterFading: boolean().notRequired(),
-  shelveTitles: boolean().notRequired()
+  shelfTitles: boolean().notRequired()
 });
 const configSchema = object({
   id: string().notRequired(),

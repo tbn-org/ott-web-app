@@ -185,7 +185,7 @@ const Movie = ({match, location}) => {
     isLoading,
     currentCardItem: item,
     currentCardLabel: t("currently_playing"),
-    enableCardTitles: options.shelveTitles,
+    enableCardTitles: options.shelfTitles,
     accessModel,
     isLoggedIn: !!user,
     hasSubscription: !!subscription

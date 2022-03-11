@@ -72,7 +72,7 @@ const Search = ({
     onCardClick,
     onCardHover,
     isLoading: firstRender,
-    enableCardTitles: options.shelveTitles,
+    enableCardTitles: options.shelfTitles,
     accessModel,
     isLoggedIn: !!user,
     hasSubscription: !!subscription

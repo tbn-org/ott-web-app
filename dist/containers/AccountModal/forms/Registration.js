@@ -3,23 +3,17 @@ import {object, string} from "../../../../_snowpack/pkg/yup.js";
 import {useTranslation} from "../../../../_snowpack/pkg/react-i18next.js";
 import {useHistory} from "../../../../_snowpack/pkg/react-router.js";
 import {useQuery} from "../../../../_snowpack/pkg/react-query.js";
-import {getPublisherConsents} from "../../../services/account.service.js";
 import RegistrationForm from "../../../components/RegistrationForm/RegistrationForm.js";
 import useForm from "../../../hooks/useForm.js";
 import {addQueryParam} from "../../../utils/history.js";
-import {ConfigStore} from "../../../stores/ConfigStore.js";
 import {extractConsentValues, checkConsentsFromValues} from "../../../utils/collection.js";
-import {register, updateConsents} from "../../../stores/AccountStore.js";
+import {getPublisherConsents, register, updateConsents} from "../../../stores/AccountStore.js";
 const Registration = () => {
   const history = useHistory();
   const {t} = useTranslation("account");
-  const {cleengId, cleengSandbox: sandbox} = ConfigStore.useState((s) => s.config);
   const [consentValues, setConsentValues] = useState({});
   const [consentErrors, setConsentErrors] = useState([]);
-  const publisherId = cleengId || "";
-  const enabled = !!publisherId;
-  const getConsents = () => getPublisherConsents({publisherId}, sandbox);
-  const {data, isLoading: publisherConsentsLoading} = useQuery(["consents"], getConsents, {enabled});
+  const {data, isLoading: publisherConsentsLoading} = useQuery(["consents"], getPublisherConsents);
   const publisherConsents = useMemo(() => data?.responseData?.consents || [], [data]);
   const handleChangeConsent = (event) => {
     setConsentValues((current) => ({...current, [event.target.name]: event.target.checked}));

@@ -44,7 +44,7 @@ const Favorites = ({
     onCardHover,
     cols,
     isLoading,
-    enableCardTitles: config.options.shelveTitles,
+    enableCardTitles: config.options.shelfTitles,
     accessModel,
     isLoggedIn: true,
     hasSubscription

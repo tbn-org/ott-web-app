@@ -6,7 +6,6 @@ import PlaylistContainer from "../../containers/Playlist/PlaylistContainer.js";
 import {PersonalShelf} from "../../enum/PersonalShelf.js";
 import useBlurImageUpdater from "../../hooks/useBlurImageUpdater.js";
 import {cardUrl} from "../../utils/formatting.js";
-import AccountContainer from "../../containers/Account/AccountContainer.js";
 import SubscriptionContainer from "../../containers/Subscription/SubscriptionContainer.js";
 import useBreakpoint, {Breakpoint} from "../../hooks/useBreakpoint.js";
 import Button from "../../components/Button/Button.js";
@@ -101,31 +100,10 @@ const User = () => {
     className: styles.mainColumn
   }, /* @__PURE__ */ React.createElement(Switch, null, /* @__PURE__ */ React.createElement(Route, {
     path: "/u/my-account"
-  }, /* @__PURE__ */ React.createElement(AccountContainer, null, ({
-    customer: customer2,
-    errors,
-    isLoading,
-    consentsLoading,
-    publisherConsents,
-    customerConsents,
-    onUpdateEmailSubmit,
-    onUpdateInfoSubmit,
-    onUpdateConsentsSubmit,
-    onReset
-  }) => /* @__PURE__ */ React.createElement(AccountComponent, {
-    customer: customer2,
-    errors,
-    isLoading,
-    consentsLoading,
-    publisherConsents,
-    customerConsents,
-    onUpdateEmailSubmit,
-    onUpdateInfoSubmit,
-    onUpdateConsentsSubmit,
-    onReset,
+  }, /* @__PURE__ */ React.createElement(AccountComponent, {
     panelClassName: styles.panel,
     panelHeaderClassName: styles.panelHeader
-  }))), /* @__PURE__ */ React.createElement(Route, {
+  })), /* @__PURE__ */ React.createElement(Route, {
     path: "/u/favorites"
   }, /* @__PURE__ */ React.createElement(PlaylistContainer, {
     playlistId: PersonalShelf.Favorites,

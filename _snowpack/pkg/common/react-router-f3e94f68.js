@@ -1,7 +1,7 @@
 import { _ as _inheritsLoose } from './inheritsLoose-978d85dc.js';
 import { r as react } from './index-04edb6a1.js';
-import { p as propTypes } from './index-ce016b4a.js';
 import { _ as _extends } from './extends-7477639a.js';
+import { p as propTypes } from './index-8ab56611.js';
 import { c as createCommonjsModule } from './_commonjsHelpers-8c19dec8.js';
 import { _ as _objectWithoutPropertiesLoose } from './objectWithoutPropertiesLoose-d5128f55.js';
 
@@ -2222,4 +2222,4 @@ function useLocation() {
   return useContext(context).location;
 }
 
-export { Router as R, Switch as S, useHistory as a, createHashHistory as b, createBrowserHistory as c, context as d, createLocation as e, createPath as f, Route as g, Redirect as h, invariant as i, matchPath as m, useLocation as u };
+export { Router as R, Switch as S, useHistory as a, createHashHistory as b, createBrowserHistory as c, context as d, createLocation as e, createPath as f, Redirect as g, Route as h, invariant as i, matchPath as m, useLocation as u };
