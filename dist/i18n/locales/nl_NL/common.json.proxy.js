@@ -1,2 +1,0 @@
-let json = {"back":"","card_lock":"","close_modal":"","confirmation_dialog":{"close":"","confirm":""},"filter_videos_by_genre":"","home":"","live":"","optional":"","play_item":"","sign_in":"","sign_up":"","slide_left":"","slide_right":""};
-export default json;
